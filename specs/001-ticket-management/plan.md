@@ -64,7 +64,7 @@ using indexed filters, eager loading, and paginating 15 at a time.
 |---|-----------|------------------------|--------|
 | I | Scope Discipline | Only the six features in the spec. There are no auth, SLA, channel, report, or agent CRUD endpoints, and the default `/user` sanctum route is removed (R11). | ✅ |
 | II | Separation of Concerns | Controllers only resolve the request, call `TicketService`, and return a Resource. Rules live in Form Requests and `TicketService`. `TicketStatus`, `TicketPriority`, and `TicketCategory` are the only source of values; validation uses `Rule::enum`, and `/meta` is built from the enums. | ✅ |
-| III | API Consistency | JSON REST. POST returns 201. Validation and `TicketRuleException` return 422 `{message, errors}`. 404 is JSON for `api/*` (R5). All bodies go through `TicketResource`, `NoteResource`, `AgentResource`, `CustomerResource`, and `HistoryResource`. | ✅ |
+| III | API Consistency | JSON REST. POST returns 201. Validation and `TicketRuleException` return 422 `{message, errors}`. 404 is JSON for `api/*` (R5). All bodies go through `TicketResource`, `NoteResource`, `AgentResource`, `CustomerResource`, `HistoryResource`, and `MetaResource`. | ✅ |
 | IV | Test Coverage | Feature tests map 1:1 to the acceptance scenarios (tasks will cite scenario IDs). `TicketStatusTest` unit-tests every from→to pair. phpunit.xml already uses SQLite `:memory:`. | ✅ |
 | V | Data Integrity | Every service mutation runs in `DB::transaction()` with `lockForUpdate()` and writes the change plus its history entry together (R6). | ✅ |
 | VI | Security | Form Requests on every input, including list filters. `$fillable` on every model, and `status`/`agent_id`/`number` are not fillable from requests. Search uses bound, escaped LIKE (R8). Vue uses `{{ }}` only, never `v-html`. `.env` is gitignored and `.env.example` is updated. | ✅ |
@@ -124,7 +124,8 @@ backend/
 │   │       ├── CustomerResource.php
 │   │       ├── AgentResource.php
 │   │       ├── NoteResource.php
-│   │       └── HistoryResource.php
+│   │       ├── HistoryResource.php
+│   │       └── MetaResource.php           # enums → statuses/priorities/categories/transitions
 │   ├── Models/
 │   │   ├── Customer.php
 │   │   ├── Agent.php

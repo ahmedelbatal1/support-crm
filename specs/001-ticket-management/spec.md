@@ -306,8 +306,8 @@ timestamp and a matching history entry.
 
 ## Assumptions
 
-- A single supervisor uses the system; there is no login, and all actions are attributed to
-  "Supervisor".
+- A single supervisor uses the system and there is no login, so actions are not attributed to a
+  person; each history entry records what changed and when.
 - Agents are predefined (seeded sample data, e.g., 3–5 agents) and are not managed in this module.
 - Ticket description is optional; the user's required-field list did not include it.
 - Field limits: customer name and subject up to 255 characters; email up to 255; phone up to

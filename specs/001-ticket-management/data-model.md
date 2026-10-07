@@ -17,7 +17,8 @@ noted). Enum values are stored as strings and cast to PHP backed enums.
 | `closed`      | Closed      | — (read-only)         |
 
 Methods: `label(): string`, `allowedTransitions(): array<self>`, `canTransitionTo(self): bool`,
-`isClosed(): bool`.
+`isClosed(): bool`, `actionLabel(self $to): string` (button text for a move: "Reopen" for
+resolved → in_progress, otherwise the target's label).
 
 ### TicketPriority (`App\Enums\TicketPriority`)
 

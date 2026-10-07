@@ -80,10 +80,12 @@ resources, and the reference-data endpoints.
   - Methods: `label(): string` (Open, In Progress, Resolved, Closed);
     `allowedTransitions(): array` (open→[in_progress], in_progress→[resolved],
     resolved→[closed, in_progress], closed→[]); `canTransitionTo(self $to): bool`;
-    `isClosed(): bool`; and a static `options(): array` returning `[{value, label}]`.
+    `isClosed(): bool`; `actionLabel(self $to): string` ("Reopen" for resolved → in_progress,
+    otherwise `$to->label()`); and a static `options(): array` returning `[{value, label}]`.
   - Add the unit test `backend/tests/Unit/TicketStatusTest.php` (extends `PHPUnit\Framework\TestCase`).
     It uses a data provider over **all 16 from→to pairs** and asserts exactly the 4 allowed moves
     return true, including that same-status moves are false. It also covers labels, `isClosed()`,
+    `actionLabel()` for all 4 allowed moves,
     and `options()`.
   - Commit: `feat(backend): add TicketStatus enum with transition rules`
 - [ ] T006 [P] Create the string-backed enums below, each with `label()` and a static `options()`.
@@ -158,15 +160,19 @@ resources, and the reference-data endpoints.
   - `TicketResource`:
     - Fields: id, number, subject, description.
     - `status`, `priority`, and `category` as `{value, label}`.
-    - `allowed_transitions` as `[{value, label}]`.
+    - `is_closed` as a boolean from `$this->status->isClosed()`.
+    - `allowed_transitions` as `[{value, label, action_label}]`, where `action_label` comes from
+      `TicketStatus::actionLabel()`.
     - `customer` and `agent` via `whenLoaded`; `agent` is null when unassigned.
     - `notes` and `history` via `whenLoaded`.
     - created_at and updated_at.
   - Commit: `feat(backend): add API resources`
 - [ ] T012 Create the reference-data endpoints and tests:
-  - `backend/app/Http/Controllers/Api/MetaController.php` (invokable). It returns `statuses`,
-    `priorities`, and `categories` from the enums' `options()`, plus `transitions` as a map of
-    value → [values], built from `TicketStatus::allowedTransitions()`.
+  - `backend/app/Http/Resources/MetaResource.php`. It builds `statuses`, `priorities`, and
+    `categories` from the enums' `options()`, plus `transitions` as a map of value → [values]
+    from `TicketStatus::allowedTransitions()`.
+  - `backend/app/Http/Controllers/Api/MetaController.php` (invokable). It returns
+    `new MetaResource(null)`, so the response is wrapped in `data` like every other endpoint.
   - `backend/app/Http/Controllers/Api/AgentController.php` (`index`). It returns
     `AgentResource::collection` sorted by name.
   - Register `GET /api/meta` and `GET /api/agents` in `backend/routes/api.php`.
@@ -449,6 +455,8 @@ US1–US3 are all P1.
   - Filters and page sync with `route.query` both ways.
   - Uses `StateMessage` for loading, empty ("No tickets match these filters."), and error (with
     retry).
+  - Calls `loadReferenceData()` on mount. If it fails, it shows an inline error above the filters
+    with a retry, and the ticket table still loads.
 
   Tests in `frontend/src/__tests__/pages/TicketList.spec.js`.
   - Commit: `feat(frontend): add ticket list page`
@@ -477,14 +485,18 @@ US1–US3 are all P1.
   - Commit: `feat(frontend): add create ticket action to store`
 - [ ] T034 [US1] Create `frontend/src/pages/TicketCreate.vue` and register the route `/tickets/new`
   **before** `/tickets/:id`:
+  - Calls `loadReferenceData()` on mount. While `metaLoading` is true, it shows
+    `StateMessage type="loading"` instead of the form. If `metaError` is set, it shows
+    `StateMessage type="error"` with a retry that calls `loadReferenceData()` again.
   - Inputs: customer name, email, phone, subject, description, and category/priority selects
     from `meta`.
   - A `FieldError` under each input.
   - The submit button is disabled while saving.
   - On success it routes to `/tickets/{id}`.
 
-  Tests in `frontend/src/__tests__/pages/TicketCreate.spec.js` (422 errors render under the
-  matching inputs; a successful submit redirects).
+  Tests in `frontend/src/__tests__/pages/TicketCreate.spec.js`: the loading state, the
+  reference-data error with retry, 422 errors rendered under the matching inputs, and a
+  successful submit redirecting.
   - Commit: `feat(frontend): add create ticket page`
 
 ### User Story 4 — Assign agent (P2)
@@ -492,7 +504,7 @@ US1–US3 are all P1.
 - [ ] T035 [US4] Add `assignAgent(id, agentId)` to `frontend/src/stores/tickets.js`; it replaces
   `currentTicket`. Create `frontend/src/components/AssignAgentForm.vue` (an agent select and an
   "Assign"/"Reassign" button, with a `FieldError` for `agent_id`) and render it in
-  `frontend/src/pages/TicketDetail.vue`, hidden when the status is `closed`. Tests in
+  `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. Tests in
   `frontend/src/__tests__/components/AssignAgentForm.spec.js`.
   - Commit: `feat(frontend): assign and reassign agents from ticket detail`
 
@@ -500,11 +512,12 @@ US1–US3 are all P1.
 
 - [ ] T036 [US5] Add `changeStatus(id, status)` to `frontend/src/stores/tickets.js`; it replaces
   `currentTicket`. Create `frontend/src/components/StatusActions.vue`, which renders **one button
-  per `ticket.allowed_transitions` entry only** ("Reopen" label for resolved → in_progress), shows
+  per `ticket.allowed_transitions` entry only**, labelled with its `action_label`, and shows
   the `errors.status` message on a 422, and disables buttons while saving. Render it in
   `frontend/src/pages/TicketDetail.vue`. Tests in
   `frontend/src/__tests__/components/StatusActions.spec.js`: an open ticket shows only
-  "In Progress", a resolved ticket shows "Closed" + "Reopen", a closed ticket shows no buttons, and
+  "In Progress", a resolved ticket shows two buttons labelled from `action_label` ("Closed",
+  "Reopen"), a closed ticket shows no buttons, and
   a 422 message is displayed.
   - Commit: `feat(frontend): add status actions to ticket detail`
 
@@ -513,7 +526,7 @@ US1–US3 are all P1.
 - [ ] T037 [US6] Add `addNote(id, body)` to `frontend/src/stores/tickets.js`; it re-fetches the
   ticket so the notes and history update. Create `frontend/src/components/NoteForm.vue` (a
   textarea, a 2,000-character counter, and a `FieldError` for `body`; it clears on success) and
-  render it in `frontend/src/pages/TicketDetail.vue`, hidden when closed. Tests in
+  render it in `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. Tests in
   `frontend/src/__tests__/components/NoteForm.spec.js`, including that `<b>hi</b>` renders as
   literal text.
   - Commit: `feat(frontend): add internal notes form`

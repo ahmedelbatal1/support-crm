@@ -84,7 +84,8 @@ below record the decisions that the spec and input left open.
 
 ## R9. Allowed next statuses for the UI
 
-- **Decision**: `TicketResource` includes `allowed_transitions` (an array of `{value, label}`),
+- **Decision**: `TicketResource` includes `is_closed` and `allowed_transitions` (an array of
+  `{value, label, action_label}`),
   which is empty when the ticket is Closed. `GET /api/meta` also returns the full transition map.
 - **Rationale**: Status buttons render exactly what the backend allows, with no duplicate rule
   table in JavaScript.

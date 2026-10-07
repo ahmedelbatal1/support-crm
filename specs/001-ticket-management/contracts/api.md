@@ -38,7 +38,10 @@ All responses are JSON, including errors, regardless of the `Accept` header.
   "status": { "value": "open", "label": "Open" },
   "priority": { "value": "high", "label": "High" },
   "category": { "value": "billing", "label": "Billing" },
-  "allowed_transitions": [{ "value": "in_progress", "label": "In Progress" }],
+  "is_closed": false,
+  "allowed_transitions": [
+    { "value": "in_progress", "label": "In Progress", "action_label": "In Progress" }
+  ],
   "customer": { "id": 3, "name": "Sara Ali", "email": "sara@example.com", "phone": null },
   "agent": { "id": 2, "name": "Omar Hassan", "email": "omar@example.com" },
   "notes": [ { "id": 5, "body": "Called customer.", "created_at": "2026-10-07T09:15:00+03:00" } ],
@@ -54,7 +57,8 @@ All responses are JSON, including errors, regardless of the `Accept` header.
 ```
 
 - `agent` is `null` when the ticket is unassigned.
-- `allowed_transitions` is `[]` when the ticket is Closed.
+- `is_closed` is `true` and `allowed_transitions` is `[]` when the ticket is Closed.
+- `action_label` is the button text; it is "Reopen" for Resolved → In Progress.
 - `notes` and `history` appear **only** on the single-ticket responses (show, create, assign,
   status). They are omitted in the list.
 
@@ -164,14 +168,16 @@ Sorted by name.
 
 ```json
 {
-  "statuses":   [ { "value": "open", "label": "Open" }, "..." ],
-  "priorities": [ { "value": "low", "label": "Low" }, "..." ],
-  "categories": [ { "value": "billing", "label": "Billing" }, "..." ],
-  "transitions": {
-    "open": ["in_progress"],
-    "in_progress": ["resolved"],
-    "resolved": ["closed", "in_progress"],
-    "closed": []
+  "data": {
+    "statuses":   [ { "value": "open", "label": "Open" }, "..." ],
+    "priorities": [ { "value": "low", "label": "Low" }, "..." ],
+    "categories": [ { "value": "billing", "label": "Billing" }, "..." ],
+    "transitions": {
+      "open": ["in_progress"],
+      "in_progress": ["resolved"],
+      "resolved": ["closed", "in_progress"],
+      "closed": []
+    }
   }
 }
 ```
