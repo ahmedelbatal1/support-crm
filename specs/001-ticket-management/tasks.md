@@ -122,9 +122,11 @@ resources, and the reference-data endpoints.
     `$fillable = ['customer_id','subject','description','category','priority']` (status, agent_id,
     and number are NOT fillable). Casts: `status` → TicketStatus, `priority` → TicketPriority,
     `category` → TicketCategory. Relations: `customer()`, `agent()`, `notes()` ordered by id, and
-    `histories()` ordered by id.
+    `histories()` ordered by id. A static `formatNumber(int $id): string` returns
+    `'TCK-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT)`; it is the only place the format is
+    defined.
   - `backend/database/factories/TicketFactory.php`, which sets `number` in an `afterCreating` hook
-    as `TCK-%04d` from the id.
+    with `Ticket::formatNumber($ticket->id)`.
   - Commit: `feat(db): add tickets table and model`
 - [ ] T009 Create the ticket_notes and ticket_histories migrations in `backend/database/migrations/`:
   - **ticket_notes**: `ticket_id` FK `cascadeOnDelete` indexed; `body` text; timestamps.
@@ -135,10 +137,14 @@ resources, and the reference-data endpoints.
   Models:
   - `backend/app/Models/TicketNote.php` with `$fillable = ['body']`.
   - `backend/app/Models/TicketHistory.php` with `const UPDATED_AT = null`,
-    `$fillable = ['event','description','old_value','new_value']`, and `event` cast to
-    TicketHistoryEvent.
+    `$fillable = ['event','description','old_value','new_value']`, `event` cast to
+    TicketHistoryEvent, and a `booted()` method whose `updating` and `deleting` listeners throw
+    `LogicException('Ticket history is append-only.')`.
 
   Both use `belongsTo(Ticket)`.
+
+  Add `backend/tests/Feature/TicketHistoryTest.php`, asserting that updating or deleting a
+  history row throws, and that deleting its ticket removes the history rows (FR-022).
   - Commit: `feat(db): add ticket notes and history tables`
 - [ ] T010 Create `backend/app/Exceptions/TicketRuleException.php`, which extends `RuntimeException`.
   - It has a `field` property and named constructors:
@@ -164,7 +170,9 @@ resources, and the reference-data endpoints.
     - `allowed_transitions` as `[{value, label, action_label}]`, where `action_label` comes from
       `TicketStatus::actionLabel()`.
     - `customer` and `agent` via `whenLoaded`; `agent` is null when unassigned.
-    - `notes` and `history` via `whenLoaded`.
+    - `notes` as `NoteResource::collection($this->whenLoaded('notes'))` and `history` as
+      `HistoryResource::collection($this->whenLoaded('histories'))` (the relation is `histories`,
+      the API key is `history`).
     - created_at and updated_at.
   - Commit: `feat(backend): add API resources`
 - [ ] T012 Create the reference-data endpoints and tests:
@@ -202,7 +210,7 @@ with `number=TCK-0001`.
   - Add `createTicket(array $data): Ticket`. Inside `DB::transaction`, it:
     - finds or creates the customer with `Customer::firstOrCreate(['email' => $data['customer_email']], ['name' => ..., 'phone' => ...])`, which never overwrites an existing customer;
     - creates the ticket with status `open` and no agent;
-    - sets `number = 'TCK-' . str_pad($id, 4, '0', STR_PAD_LEFT)`;
+    - sets `number = Ticket::formatNumber($ticket->id)`;
     - records `created` with description "Ticket {number} created".
   - Add `backend/tests/Feature/TicketServiceTest.php` with create cases:
     - the number format and its sequence (US1-AS5)
@@ -287,7 +295,9 @@ with `number=TCK-0001`.
   - Otherwise set `agent_id`, then record `assigned` with "Assigned to {new}" or
     "Reassigned from {old} to {new}" (old_value and new_value are the agent names).
 
-  Extend `backend/tests/Feature/TicketServiceTest.php` with assign cases.
+  Extend `backend/tests/Feature/TicketServiceTest.php` with assign cases, including a rollback
+  test (FR-023): with a `TicketHistory::creating` listener that throws, `agent_id` is unchanged
+  after the exception.
   - Commit: `feat(backend): add ticket assignment to TicketService`
 - [ ] T018 [US4] Create:
   - `backend/app/Http/Requests/AssignTicketRequest.php` (`agent_id` "required integer `exists:agents,id`")
@@ -345,7 +355,9 @@ with `number=TCK-0001`.
 - [ ] T021 [US6] Add `TicketService::addNote(Ticket $ticket, string $body): TicketNote` in
   `backend/app/Services/TicketService.php`. Inside a transaction, after `lockForUpdate()`, throw
   `closed('body')` if the ticket is closed; otherwise create the note and record `note_added` with
-  "Note added". Extend `backend/tests/Feature/TicketServiceTest.php` with note cases.
+  "Note added". Extend `backend/tests/Feature/TicketServiceTest.php` with note cases, including a
+  rollback test (FR-023): with a `TicketHistory::creating` listener that throws, the ticket has no
+  notes after the exception.
   - Commit: `feat(backend): add internal notes to TicketService`
 - [ ] T022 [US6] Create:
   - `backend/app/Http/Requests/StoreNoteRequest.php` (`body` "required string max:2000"; whitespace-only
@@ -405,8 +417,10 @@ frontend pages.
   - `frontend/src/api/tickets.js`: `listTickets(params)`, `getTicket(id)`, `createTicket(payload)`,
     `assignTicket(id, agentId)`, `changeStatus(id, status)`, and `addNote(id, body)`.
   - `frontend/src/api/meta.js`: `getMeta()` and `getAgents()`.
+  - Return values: `listTickets` returns the whole body (`response.data`, with `data`, `meta`, and
+    `links`). Every other function returns the unwrapped resource (`response.data.data`).
   - Tests in `frontend/src/__tests__/api/http.spec.js` for the error normalizer (422, 404, and
-    network errors).
+    network errors) and for the return values above.
   - Commit: `feat(frontend): add API layer`
 - [ ] T026 [P] Create the shared components, each rendering user text with `{{ }}` only:
   - `frontend/src/components/StateMessage.vue` (props `type`: loading|empty|error|notfound, plus
@@ -466,8 +480,10 @@ US1–US3 are all P1.
 ### User Story 3 — Ticket detail page (P1)
 
 - [ ] T031 [US3] Extend `frontend/src/stores/tickets.js` with `currentTicket`, `ticketLoading`,
-  `ticketError`, `ticketNotFound`, and `fetchTicket(id)`, which sets `ticketNotFound` on a 404.
-  Tests go in the store spec.
+  `ticketError`, `ticketNotFound`, and `fetchTicket(id, { silent = false } = {})`, which sets
+  `ticketNotFound` on a 404. With `silent: true` it replaces `currentTicket` without touching
+  `ticketLoading`, so the page doesn't flash a loading state. Tests go in the store spec,
+  including the silent mode.
   - Commit: `feat(frontend): add current ticket state to store`
 - [ ] T032 [US3] Create `frontend/src/components/HistoryList.vue` and
   `frontend/src/pages/TicketDetail.vue`, and register the route `/tickets/:id`:
@@ -506,21 +522,25 @@ US1–US3 are all P1.
 - [ ] T035 [US4] Add `assignAgent(id, agentId)` to `frontend/src/stores/tickets.js`; it replaces
   `currentTicket`. Create `frontend/src/components/AssignAgentForm.vue` (an agent select and an
   "Assign"/"Reassign" button, with a `FieldError` for `agent_id`) and render it in
-  `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. Tests in
-  `frontend/src/__tests__/components/AssignAgentForm.spec.js`.
+  `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. On a 422, it
+  keeps the error message on screen and calls `fetchTicket(id, { silent: true })`, so the page
+  shows the ticket's latest state (spec edge case: stale data). Tests in
+  `frontend/src/__tests__/components/AssignAgentForm.spec.js`, including that a 422 triggers a
+  silent re-fetch.
   - Commit: `feat(frontend): assign and reassign agents from ticket detail`
 
 ### User Story 5 — Status actions (P2)
 
 - [ ] T036 [US5] Add `changeStatus(id, status)` to `frontend/src/stores/tickets.js`; it replaces
   `currentTicket`. Create `frontend/src/components/StatusActions.vue`, which renders **one button
-  per `ticket.allowed_transitions` entry only**, labelled with its `action_label`, and shows
-  the `errors.status` message on a 422, and disables buttons while saving. Render it in
-  `frontend/src/pages/TicketDetail.vue`. Tests in
+  per `ticket.allowed_transitions` entry only**, labelled with its `action_label`. It disables the
+  buttons while saving. On a 422, it shows the `errors.status` message and calls
+  `fetchTicket(id, { silent: true })`, so the page shows the ticket's latest state (spec edge
+  case: stale data). Render it in `frontend/src/pages/TicketDetail.vue`. Tests in
   `frontend/src/__tests__/components/StatusActions.spec.js`: an open ticket shows only
   "In Progress", a resolved ticket shows two buttons labelled from `action_label` ("Closed",
-  "Reopen"), a closed ticket shows no buttons, and
-  a 422 message is displayed.
+  "Reopen"), a closed ticket shows no buttons, and a 422 shows its message and triggers a silent
+  re-fetch.
   - Commit: `feat(frontend): add status actions to ticket detail`
 
 ### User Story 6 — Notes form (P3)
@@ -528,9 +548,11 @@ US1–US3 are all P1.
 - [ ] T037 [US6] Add `addNote(id, body)` to `frontend/src/stores/tickets.js`; it re-fetches the
   ticket so the notes and history update. Create `frontend/src/components/NoteForm.vue` (a
   textarea, a 2,000-character counter, and a `FieldError` for `body`; it clears on success) and
-  render it in `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. Tests in
-  `frontend/src/__tests__/components/NoteForm.spec.js`, including that `<b>hi</b>` renders as
-  literal text.
+  render it in `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. On a
+  422, it keeps the error message and the typed text on screen and calls
+  `fetchTicket(id, { silent: true })`, so the page shows the ticket's latest state (spec edge
+  case: stale data). Tests in `frontend/src/__tests__/components/NoteForm.spec.js`, including
+  that `<b>hi</b>` renders as literal text and that a 422 triggers a silent re-fetch.
   - Commit: `feat(frontend): add internal notes form`
 
 **Checkpoint**: Every page works against the running API, and `npm run test:unit -- --run` is green.
@@ -555,7 +577,16 @@ US1–US3 are all P1.
   `npm run lint` in `frontend/`. Both test suites must pass afterwards.
   - Commit: `style: apply pint and eslint fixes`
 - [ ] T041 Run the [quickstart.md](./quickstart.md) setup from scratch on WAMP, then do manual
-  scenarios 1–13. Commit each defect found as its own `fix(...)` commit, and log the results in
+  scenarios 1–13. Then check SC-007:
+  - point `.env` at a scratch database `support_crm_perf` and run `php artisan migrate:fresh --seed`;
+  - in `php artisan tinker`, run `App\Models\Ticket::factory()->count(10000)->create()`;
+  - time `GET /api/tickets`, `GET /api/tickets?status=open&search=refund`, and
+    `GET /api/tickets/{id}` with `curl -o NUL -s -w "%{time_total}"`, and confirm each takes
+    under 2 s;
+  - point `.env` back at `support_crm`.
+
+  Do not fix defects inside this task: add each one to this file as a new follow-up task (T043,
+  T044, …) with its own `fix(...)` commit message. Log the results, including the timings, in
   `docs/ai-usage.md`.
   - Commit: `docs: record quickstart validation results`
 - [ ] T042 Write `README.md` at the repository root covering:
@@ -575,7 +606,8 @@ US1–US3 are all P1.
 
 ### Phase Dependencies
 
-- **Phase 1 Setup**: has no dependencies. T002 comes before T004 (both touch the API routing setup).
+- **Phase 1 Setup**: has no dependencies. T001–T004 edit different files and can be done in any
+  order.
 - **Phase 2 Foundational**: depends on Phase 1. T005 and T006 are [P]. T007 → T008 → T009 run
   in order. T010 needs T005 and T007. T011 needs T005–T009. T012 needs T011.
 - **Phase 3 Backend stories**: depend on Phase 2.
@@ -651,8 +683,9 @@ Task: "T029 TicketFilters.vue + PaginationBar.vue in frontend/src/components/"
 
 ## Notes
 
-- 42 tasks = 42 commits. Do not batch tasks into one commit, and do not split a task's code from
-  its tests.
+- Each task is at most one commit. Do not batch tasks into one commit, and do not split a task's
+  code from its tests. The check tasks T038–T040 skip their commit when they find nothing to
+  change; record "no changes" in `docs/ai-usage.md` instead.
 - Validation rules quoted in tasks come from [data-model.md](./data-model.md). If they ever
   disagree, data-model.md wins and must be amended first.
 - Rule messages must match [contracts/api.md](./contracts/api.md) exactly, because the frontend

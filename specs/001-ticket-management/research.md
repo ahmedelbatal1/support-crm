@@ -17,13 +17,19 @@ below record the decisions that the spec and input left open.
 
 ## R2. Ticket number generation (TCK-0001)
 
-- **Decision**: Insert the ticket, then set `number = 'TCK-' . str_pad($id, 4, '0', STR_PAD_LEFT)`
-  inside the same transaction. `number` is a nullable, unique column that is always filled before
+- **Decision**: Insert the ticket, then set `number = Ticket::formatNumber($id)`
+  (`'TCK-' . str_pad($id, 4, '0', STR_PAD_LEFT)`) inside the same transaction. `number` is a nullable, unique column that is always filled before
   the transaction commits.
 - **Rationale**: The auto-increment id is already unique, sequential, concurrency-safe, and never
   reused (MySQL 8 persists the counter). It handles TCK-10000+ naturally (FR-006, edge cases).
 - **Alternatives considered**: `MAX(number)+1` (racy under concurrent creates, needs locking); a
   separate counter table (extra table, no benefit).
+- **Accepted risk (analysis finding G4)**: There are no automated tests for simultaneous ticket
+  creation or for the `lockForUpdate()` row locking in R6. The test database (SQLite in memory)
+  runs one connection at a time and ignores row locks, so such tests would be slow and unreliable.
+  The guarantees instead rest on MySQL's auto-increment id, the unique index on `tickets.number`,
+  and InnoDB row locks, all of which are standard database behavior. Revisit if the module ever
+  runs with several app servers or a queue that creates tickets.
 
 ## R3. Business-rule errors (invalid transition, closed ticket, missing agent, same agent)
 

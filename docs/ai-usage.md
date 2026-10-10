@@ -6,3 +6,4 @@
 | Spec | Generate spec with /speckit-specify | My feature list, rules, out-of-scope list | 6 stories, 33 scenarios, 25 requirements | Reviewed 10 default assumptions and accepted them | Checked rules match my description; quality checklist passed |
 | Plan | Generate technical plan with /speckit-plan | Stack, layers, tables, endpoints, frontend structure | Plan, data model, API contracts | — | Constitution Check passed; reviewed endpoints and tables |
 | Tasks | Generate task list with /speckit-tasks | Plan, spec, one-commit-per-task rule | 42 tasks in 7 phases with commit messages | — | Checked every user story has backend + frontend tasks |
+| Analyze | Cross-check spec, plan, tasks with /speckit-analyze | All spec artifacts + constitution | Coverage report and 3 fix proposal files | Reviewed each fix before approving; fixed 2 critical, 9 inconsistencies, 4 gaps; accepted G4 risk | Re-ran analyze: critical issues 2 → 0 |

@@ -121,8 +121,10 @@ Relations: `belongsTo(Customer)`, `belongsTo(Agent)`, `hasMany(TicketNote)` orde
 | new_value   | string(255), nullable | new status value or agent name              |
 | created_at  | timestamp             | no `updated_at` (append-only)               |
 
-`const UPDATED_AT = null`. `$fillable = [event, description, old_value, new_value]`. There is no
-update or delete code path (FR-022).
+`const UPDATED_AT = null`. `$fillable = [event, description, old_value, new_value]`. The model
+blocks changes: `booted()` registers `updating` and `deleting` listeners that throw
+`LogicException('Ticket history is append-only.')` (FR-022). Deleting a ticket still removes its
+history, because the database foreign-key cascade does not fire model events.
 
 ## History descriptions
 

@@ -143,15 +143,21 @@ backend/
 ├── routes/api.php                     # 8 routes; /user route removed
 └── tests/
     ├── Unit/
-    │   └── TicketStatusTest.php       # every from→to pair
+    │   ├── TicketStatusTest.php       # every from→to pair
+    │   └── TicketEnumsTest.php        # priority, category, history event
     └── Feature/
+        ├── ApiErrorHandlingTest.php   # JSON 404 for api/*
+        ├── TicketRuleExceptionTest.php
+        ├── TicketServiceTest.php      # service rules, history, rollback
+        ├── TicketHistoryTest.php      # history is append-only
         ├── CreateTicketTest.php       # US1
         ├── ListTicketsTest.php        # US2
         ├── ShowTicketTest.php         # US3
         ├── AssignTicketTest.php       # US4
         ├── ChangeTicketStatusTest.php # US5
         ├── AddTicketNoteTest.php      # US6
-        └── MetaAndAgentsTest.php
+        ├── MetaAndAgentsTest.php
+        └── DatabaseSeederTest.php
 
 frontend/
 ├── src/
@@ -182,8 +188,9 @@ frontend/
 │   ├── App.vue
 │   └── main.js
 └── src/__tests__/
+    ├── api/http.spec.js
     ├── stores/tickets.spec.js
-    ├── components/StatusActions.spec.js
+    ├── components/{shared,TicketFilters,AssignAgentForm,StatusActions,NoteForm}.spec.js
     └── pages/{TicketList,TicketCreate,TicketDetail}.spec.js
 
 docs/

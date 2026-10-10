@@ -1,11 +1,13 @@
 # Proposed Fixes from /speckit-analyze (Part 3)
 
-**Feature**: [spec.md](./spec.md) | **Date**: 2026-10-07 | **Status**: Proposed, not applied
+**Feature**: [spec.md](./spec.md) | **Date**: 2026-10-07 | **Status**: Applied 2026-10-10
 
 These are the suggested edits for findings G1, G2, and G3 from the `/speckit-analyze` report. None
 of them has been applied. Line numbers refer to the files after the
 [analyze-fixes.md](./analyze-fixes.md) and [analyze-fixes-2.md](./analyze-fixes-2.md) edits were
-applied.
+applied. The low-severity fixes applied on 2026-10-10 (U1, I5, D1, I6, I7, I8) shifted some
+`tasks.md` lines by a few rows, so match on the quoted text rather than the line numbers. G1's
+"current" text was updated to reflect the I6 change to T041.
 
 | ID | Severity | Summary | Files |
 |----|----------|---------|-------|
@@ -21,13 +23,14 @@ applied.
 it. A one-time timed check during the quickstart run proves it without adding code, packages, or a
 task. It runs against a scratch database so the normal seed data stays untouched.
 
-### `specs/001-ticket-management/tasks.md` — T041 (lines 557–559)
+### `specs/001-ticket-management/tasks.md` — T041
 
-Current:
+Current (as changed by the I6 fix on 2026-10-10):
 
 ```markdown
 - [ ] T041 Run the [quickstart.md](./quickstart.md) setup from scratch on WAMP, then do manual
-  scenarios 1–13. Commit each defect found as its own `fix(...)` commit, and log the results in
+  scenarios 1–13. Do not fix defects inside this task: add each one to this file as a new
+  follow-up task (T043, T044, …) with its own `fix(...)` commit message. Log the results in
   `docs/ai-usage.md`.
 ```
 
@@ -43,8 +46,9 @@ New:
     under 2 s;
   - point `.env` back at `support_crm`.
 
-  Commit each defect found as its own `fix(...)` commit, and log the results, including the
-  timings, in `docs/ai-usage.md`.
+  Do not fix defects inside this task: add each one to this file as a new follow-up task (T043,
+  T044, …) with its own `fix(...)` commit message. Log the results, including the timings, in
+  `docs/ai-usage.md`.
 ```
 
 ---
