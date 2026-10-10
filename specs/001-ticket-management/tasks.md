@@ -41,9 +41,10 @@ traced across the backend and frontend phases.
 
 **Purpose**: Project configuration, the AI usage log, and API plumbing that every story relies on.
 
-- [ ] T001 Create `docs/ai-usage.md` with a short purpose paragraph and a log table with columns
-  `Date | Task | Tool | What was generated | What changed in review | How it was verified`, plus a
-  first row for the spec, plan, and tasks documents
+- [X] T001 Create `docs/ai-usage.md` with a short purpose paragraph and a log table with columns
+  `Task | What I asked the AI | Context I gave | What I kept | What I changed and why | How I verified`,
+  plus rows for the constitution, spec, plan, tasks, and analysis steps. All future log entries
+  use these columns.
   - Commit: `docs: add AI usage log`
 - [ ] T002 Configure backend environment defaults in `backend/.env.example`:
   `DB_CONNECTION=mysql`, `DB_HOST=127.0.0.1`, `DB_PORT=3306`, `DB_DATABASE=support_crm`,
@@ -408,6 +409,9 @@ frontend pages.
     `RouterView`.
   - Import the CSS in `frontend/src/main.js`.
   - Add `frontend/.env.example` with `VITE_API_URL=http://localhost:8000/api`.
+  - Add `.env` and `.env.*` to `frontend/.gitignore`, followed by `!.env.example` so the example
+    stays tracked (Constitution VI). Confirm with `git check-ignore frontend/.env` (prints the
+    path) and `git check-ignore frontend/.env.example` (prints nothing).
   - Commit: `chore(frontend): replace scaffold with app shell and base styles`
 - [ ] T025 Create the API layer:
   - `frontend/src/api/http.js`: an Axios instance with `baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api'`
