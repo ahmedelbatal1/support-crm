@@ -1,6 +1,6 @@
 # Proposed Fixes from /speckit-analyze (Part 2)
 
-**Feature**: [spec.md](./spec.md) | **Date**: 2026-10-07 | **Status**: Proposed, not applied
+**Feature**: [spec.md](./spec.md) | **Date**: 2026-10-07 | **Status**: Applied 2026-10-07 (I3: recommended option)
 
 These are the suggested edits for findings I3 and I4 from the `/speckit-analyze` report. Neither
 has been applied. Line numbers refer to the files after the

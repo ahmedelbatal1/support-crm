@@ -140,7 +140,7 @@ resources, and the reference-data endpoints.
 
   Both use `belongsTo(Ticket)`.
   - Commit: `feat(db): add ticket notes and history tables`
-- [ ] T010 [P] Create `backend/app/Exceptions/TicketRuleException.php`, which extends `RuntimeException`.
+- [ ] T010 Create `backend/app/Exceptions/TicketRuleException.php`, which extends `RuntimeException`.
   - It has a `field` property and named constructors:
     - `invalidTransition(TicketStatus $from, TicketStatus $to)` → field `status`, message
       "Cannot change status from {From} to {To}."
@@ -151,7 +151,7 @@ resources, and the reference-data endpoints.
   - Add `backend/tests/Feature/TicketRuleExceptionTest.php`, asserting the rendered status and
     JSON shape for each constructor.
   - Commit: `feat(backend): add TicketRuleException rendered as 422`
-- [ ] T011 [P] Create the API resources in `backend/app/Http/Resources/`, following the shapes in
+- [ ] T011 Create the API resources in `backend/app/Http/Resources/`, following the shapes in
   `contracts/api.md`:
   - `CustomerResource` (id, name, email, phone)
   - `AgentResource` (id, name, email)
@@ -413,7 +413,9 @@ frontend pages.
     `message`; emits `retry` for errors)
   - `frontend/src/components/FieldError.vue` (shows the first message of `errors[field]`)
   - `frontend/src/components/StatusBadge.vue` (an `{value,label}` badge with a class per value)
-  - `frontend/src/utils/format.js` (`formatDateTime` via `Intl.DateTimeFormat`)
+  - `frontend/src/utils/format.js` (`formatDateTime(iso, options = {})` via
+    `Intl.DateTimeFormat` in the viewer's local timezone; tests pass `{ timeZone: 'UTC' }` so the
+    results don't depend on the machine running them)
 
   Tests in `frontend/src/__tests__/components/shared.spec.js`.
   - Commit: `feat(frontend): add shared state, error and badge components`
@@ -574,8 +576,8 @@ US1–US3 are all P1.
 ### Phase Dependencies
 
 - **Phase 1 Setup**: has no dependencies. T002 comes before T004 (both touch the API routing setup).
-- **Phase 2 Foundational**: depends on Phase 1. T005, T006, T010, and T011 are [P], but T011
-  needs T005–T009, and T008 needs T007.
+- **Phase 2 Foundational**: depends on Phase 1. T005 and T006 are [P]. T007 → T008 → T009 run
+  in order. T010 needs T005 and T007. T011 needs T005–T009. T012 needs T011.
 - **Phase 3 Backend stories**: depend on Phase 2.
   - US1 (T013–T014) comes first, because later service tests create tickets through the service.
   - US2 (T015) and US3 (T016) each depend on T014's `TicketController` file.
@@ -604,7 +606,7 @@ flowchart LR
 ### Parallel Opportunities
 
 - T003 can run in parallel with T002.
-- In Phase 2, T005, T006, and T010 can run in parallel; T011 runs once the models exist.
+- In Phase 2, T005 and T006 can run in parallel with each other and with T007.
 - After T014, T015 (US2), T016 (US3), T017 (US4), and T021 (US6) touch different files, apart from
   `TicketService.php` and `routes/api.php`. If they are run in parallel, merge those two files
   carefully; otherwise run them in order.
@@ -617,7 +619,7 @@ flowchart LR
 ```text
 Task: "T005 TicketStatus enum + TicketStatusTest in backend/app/Enums/TicketStatus.php"
 Task: "T006 Priority/Category/HistoryEvent enums in backend/app/Enums/"
-Task: "T010 TicketRuleException in backend/app/Exceptions/TicketRuleException.php"
+Task: "T007 customers and agents tables in backend/database/migrations/"
 ```
 
 ## Parallel Example: User Story 2 (frontend)

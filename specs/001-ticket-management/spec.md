@@ -316,6 +316,6 @@ timestamp and a matching history entry.
 - Ticket subject, description, category, and priority are not editable after creation (not
   requested).
 - Notes are internal only and cannot be edited or deleted.
-- Times are displayed in the server's configured timezone.
+- Times are stored and sent in UTC and shown in the viewer's local time.
 - Out of scope: login and roles, SLA, email/WhatsApp/SMS channels, AI features, knowledge base,
   customer portal, reports, attachments, multi-branch, ticket deletion, and agent management.

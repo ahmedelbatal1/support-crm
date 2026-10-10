@@ -27,6 +27,11 @@ All responses are JSON, including errors, regardless of the `Accept` header.
 { "value": "in_progress", "label": "In Progress" }
 ```
 
+### Timestamps
+
+All `*_at` fields are ISO 8601 in UTC, for example `"2026-10-07T06:00:00.000000Z"`. Clients
+convert them to local time for display.
+
 ### Ticket (TicketResource)
 
 ```json
@@ -44,15 +49,15 @@ All responses are JSON, including errors, regardless of the `Accept` header.
   ],
   "customer": { "id": 3, "name": "Sara Ali", "email": "sara@example.com", "phone": null },
   "agent": { "id": 2, "name": "Omar Hassan", "email": "omar@example.com" },
-  "notes": [ { "id": 5, "body": "Called customer.", "created_at": "2026-10-07T09:15:00+03:00" } ],
+  "notes": [ { "id": 5, "body": "Called customer.", "created_at": "2026-10-07T06:15:00.000000Z" } ],
   "history": [
     {
       "id": 40, "event": "created", "description": "Ticket TCK-0012 created",
-      "old_value": null, "new_value": null, "created_at": "2026-10-07T09:00:00+03:00"
+      "old_value": null, "new_value": null, "created_at": "2026-10-07T06:00:00.000000Z"
     }
   ],
-  "created_at": "2026-10-07T09:00:00+03:00",
-  "updated_at": "2026-10-07T09:15:00+03:00"
+  "created_at": "2026-10-07T06:00:00.000000Z",
+  "updated_at": "2026-10-07T06:15:00.000000Z"
 }
 ```
 
