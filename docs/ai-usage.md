@@ -13,3 +13,4 @@ work adds a row here.
 | Tasks | Generate task list with /speckit-tasks | Plan, spec, one-commit-per-task rule | 42 tasks in 7 phases with commit messages | — | Checked every user story has backend + frontend tasks |
 | Analyze | Cross-check spec, plan, tasks with /speckit-analyze | All spec artifacts + constitution | Coverage report and 3 fix proposal files | Reviewed each fix before approving; fixed 2 critical, 9 inconsistencies, 4 gaps; accepted G4 risk | Re-ran analyze: critical issues 2 → 0 |
 | T001 | Implement T001 with /speckit-implement | tasks.md T001 + my existing log | Purpose paragraph linked to Constitution X | Kept my own columns instead of the ones in T001 and updated T001 to match | Checked my table and rows were not changed |
+| T002 | Implement T002 with /speckit-implement | tasks.md T002 | MySQL defaults in .env.example, FRONTEND_URL, removed /user route | — | php artisan test passed; route:list shows no auth route; .env not tracked |

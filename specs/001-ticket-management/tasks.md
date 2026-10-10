@@ -46,7 +46,7 @@ traced across the backend and frontend phases.
   plus rows for the constitution, spec, plan, tasks, and analysis steps. All future log entries
   use these columns.
   - Commit: `docs: add AI usage log`
-- [ ] T002 Configure backend environment defaults in `backend/.env.example`:
+- [X] T002 Configure backend environment defaults in `backend/.env.example`:
   `DB_CONNECTION=mysql`, `DB_HOST=127.0.0.1`, `DB_PORT=3306`, `DB_DATABASE=support_crm`,
   `DB_USERNAME=root`, `DB_PASSWORD=`, `FRONTEND_URL=http://localhost:5173`. Confirm `.env` is listed
   in `backend/.gitignore` and not tracked (`git ls-files backend/.env` prints nothing). Replace the
