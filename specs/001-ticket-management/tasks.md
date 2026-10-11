@@ -275,7 +275,7 @@ with `number=TCK-0001`.
 **Goal**: `GET /api/tickets/{ticket}` returns one ticket with customer, agent, notes, and history.
 **Independent Test**: `php artisan test --filter=ShowTicket` passes.
 
-- [ ] T016 [US3] Add `TicketController@show` in `backend/app/Http/Controllers/Api/TicketController.php`
+- [X] T016 [US3] Add `TicketController@show` in `backend/app/Http/Controllers/Api/TicketController.php`
   (route model binding; loads customer, agent, notes, and histories) and register
   `GET /api/tickets/{ticket}`. Add `backend/tests/Feature/ShowTicketTest.php` covering:
   - US3-AS1 (agent, 2 notes, and 4 history entries, oldest first, with timestamps)

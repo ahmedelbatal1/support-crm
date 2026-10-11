@@ -11,3 +11,4 @@ Route::get('/agents', [AgentController::class, 'index']);
 
 Route::get('/tickets', [TicketController::class, 'index']);
 Route::post('/tickets', [TicketController::class, 'store']);
+Route::get('/tickets/{ticket}', [TicketController::class, 'show']);
