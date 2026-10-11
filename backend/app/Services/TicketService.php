@@ -6,6 +6,8 @@ use App\Enums\TicketHistoryEvent;
 use App\Enums\TicketStatus;
 use App\Models\Customer;
 use App\Models\Ticket;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -14,6 +16,12 @@ use Illuminate\Support\Facades\DB;
  */
 class TicketService
 {
+    /**
+     * "!" is used as the LIKE escape character because a backslash needs different quoting in
+     * MySQL and SQLite. With it, "%", "_" and "\" in the search text all match literally.
+     */
+    private const LIKE_ESCAPE = '!';
+
     /**
      * @param  array{customer_name: string, customer_email: string, customer_phone?: ?string, subject: string, description?: ?string, category: string, priority: string}  $data
      */
@@ -43,6 +51,41 @@ class TicketService
 
             return $ticket;
         });
+    }
+
+    /**
+     * Filters are combined with AND; agent_id "none" means unassigned (research R8).
+     *
+     * @param  array{status?: ?string, priority?: ?string, category?: ?string, agent_id?: int|string|null, search?: ?string}  $filters
+     */
+    public function listTickets(array $filters): LengthAwarePaginator
+    {
+        return Ticket::query()
+            ->with(['customer', 'agent'])
+            ->when($filters['status'] ?? null, fn (Builder $q, string $status) => $q->where('status', $status))
+            ->when($filters['priority'] ?? null, fn (Builder $q, string $priority) => $q->where('priority', $priority))
+            ->when($filters['category'] ?? null, fn (Builder $q, string $category) => $q->where('category', $category))
+            ->when($filters['agent_id'] ?? null, fn (Builder $q, int|string $agentId) => $agentId === 'none'
+                ? $q->whereNull('agent_id')
+                : $q->where('agent_id', $agentId))
+            ->when($filters['search'] ?? null, function (Builder $q, string $search) {
+                $pattern = '%'.$this->escapeLike($search).'%';
+
+                $q->where(fn (Builder $q) => $q
+                    ->whereRaw("subject LIKE ? ESCAPE '".self::LIKE_ESCAPE."'", [$pattern])
+                    ->orWhereRaw("number LIKE ? ESCAPE '".self::LIKE_ESCAPE."'", [$pattern]));
+            })
+            ->orderByDesc('id')
+            ->paginate(15);
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return str_replace(
+            [self::LIKE_ESCAPE, '%', '_'],
+            [self::LIKE_ESCAPE.self::LIKE_ESCAPE, self::LIKE_ESCAPE.'%', self::LIKE_ESCAPE.'_'],
+            $value,
+        );
     }
 
     private function recordHistory(

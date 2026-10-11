@@ -9,4 +9,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/meta', MetaController::class);
 Route::get('/agents', [AgentController::class, 'index']);
 
+Route::get('/tickets', [TicketController::class, 'index']);
 Route::post('/tickets', [TicketController::class, 'store']);

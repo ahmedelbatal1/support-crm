@@ -246,7 +246,7 @@ with `number=TCK-0001`.
 **Goal**: `GET /api/tickets` returns paginated, filterable, searchable results.
 **Independent Test**: `php artisan test --filter=ListTickets` passes.
 
-- [ ] T015 [US2] Create `backend/app/Http/Requests/ListTicketsRequest.php` with these rules:
+- [X] T015 [US2] Create `backend/app/Http/Requests/ListTicketsRequest.php` with these rules:
   - `status`, `priority`, `category`: "nullable `Rule::enum`"
   - `agent_id`: "nullable, `none` or `exists:agents,id`"
   - `search`: "nullable string max:100"
