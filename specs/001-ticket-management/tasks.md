@@ -58,7 +58,7 @@ traced across the backend and frontend phases.
   `'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')]`, `'allowed_methods' => ['*']`,
   `'allowed_headers' => ['*']`, and `'supports_credentials' => false`
   - Commit: `chore(backend): restrict CORS to the Vite dev server`
-- [ ] T004 Make every `api/*` error render as JSON in `backend/bootstrap/app.php`:
+- [X] T004 Make every `api/*` error render as JSON in `backend/bootstrap/app.php`:
   - Call `$exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson())`.
   - Add a `render` callback for `NotFoundHttpException` on `api/*`. When `$e->getPrevious()` is a
     `ModelNotFoundException`, return `{"message": "<Model basename> not found."}` (for example
