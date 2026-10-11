@@ -76,7 +76,7 @@ resources, and the reference-data endpoints.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 [P] Create `backend/app/Enums/TicketStatus.php`, a string-backed enum:
+- [X] T005 [P] Create `backend/app/Enums/TicketStatus.php`, a string-backed enum:
   - Cases `Open='open'`, `InProgress='in_progress'`, `Resolved='resolved'`, `Closed='closed'`.
   - Methods: `label(): string` (Open, In Progress, Resolved, Closed);
     `allowedTransitions(): array` (open→[in_progress], in_progress→[resolved],
