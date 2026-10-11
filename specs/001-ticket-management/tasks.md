@@ -96,7 +96,7 @@ resources, and the reference-data endpoints.
     Account, `general` General)
   - `backend/app/Enums/TicketHistoryEvent.php` (`created`, `assigned`, `status_changed`, `note_added`)
   - Commit: `feat(backend): add priority, category and history event enums`
-- [ ] T007 Create the customers and agents tables, models, and factories:
+- [X] T007 Create the customers and agents tables, models, and factories:
   - Migrations in `backend/database/migrations/`:
     - **customers**: `name` string(255) required; `email` string(255) "required, unique, stored
       lower-cased"; `phone` string(30) "nullable"; timestamps.
