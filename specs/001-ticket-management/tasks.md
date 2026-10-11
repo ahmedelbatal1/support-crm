@@ -89,7 +89,7 @@ resources, and the reference-data endpoints.
     `actionLabel()` for all 4 allowed moves,
     and `options()`.
   - Commit: `feat(backend): add TicketStatus enum with transition rules`
-- [ ] T006 [P] Create the string-backed enums below, each with `label()` and a static `options()`.
+- [X] T006 [P] Create the string-backed enums below, each with `label()` and a static `options()`.
   Add `backend/tests/Unit/TicketEnumsTest.php` asserting their values, labels, and option lists.
   - `backend/app/Enums/TicketPriority.php` (`low` Low, `medium` Medium, `high` High, `urgent` Urgent)
   - `backend/app/Enums/TicketCategory.php` (`billing` Billing, `technical` Technical, `account`
