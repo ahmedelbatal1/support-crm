@@ -107,7 +107,7 @@ resources, and the reference-data endpoints.
   - Factories: `backend/database/factories/CustomerFactory.php` (lower-case unique safe emails) and
     `backend/database/factories/AgentFactory.php`.
   - Commit: `feat(db): add customers and agents tables`
-- [ ] T008 Create the tickets migration in `backend/database/migrations/`. Columns:
+- [X] T008 Create the tickets migration in `backend/database/migrations/`. Columns:
   - `number` string(20) "nullable", **unique**
   - `customer_id` FK → customers, `restrictOnDelete`
   - `agent_id` FK → agents, "nullable", `nullOnDelete`, **indexed**
