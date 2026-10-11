@@ -53,7 +53,7 @@ traced across the backend and frontend phases.
   `/user` `auth:sanctum` route in `backend/routes/api.php` with an empty route file (keep the
   `use` lines only).
   - Commit: `chore(backend): configure MySQL env example and drop default auth route`
-- [ ] T003 [P] Publish the CORS config with `php artisan config:publish cors` to
+- [X] T003 [P] Publish the CORS config with `php artisan config:publish cors` to
   `backend/config/cors.php`. Set `'paths' => ['api/*']`,
   `'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')]`, `'allowed_methods' => ['*']`,
   `'allowed_headers' => ['*']`, and `'supports_credentials' => false`
