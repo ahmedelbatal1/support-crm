@@ -6,11 +6,15 @@ use App\Enums\TicketCategory;
 use App\Enums\TicketHistoryEvent;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
+use App\Exceptions\TicketRuleException;
+use App\Models\Agent;
 use App\Models\Customer;
 use App\Models\Ticket;
+use App\Models\TicketHistory;
 use App\Services\TicketService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Tests\TestCase;
 
 class TicketServiceTest extends TestCase
@@ -129,5 +133,111 @@ class TicketServiceTest extends TestCase
         $this->assertSame(TicketStatus::Open, $ticket->status);
         $this->assertNull($ticket->agent_id);
         $this->assertSame('TCK-0001', $ticket->number);
+    }
+
+    public function test_us4_as1_assigns_an_unassigned_ticket(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+        $omar = Agent::factory()->create(['name' => 'Omar']);
+
+        $assigned = $this->service->assign($ticket, $omar);
+
+        $this->assertSame($omar->id, $assigned->agent_id);
+        $this->assertSame($omar->id, $ticket->fresh()->agent_id);
+        $this->assertSame(TicketStatus::Open, $ticket->fresh()->status);
+
+        $history = $ticket->histories()->get();
+        $this->assertCount(2, $history);
+        $this->assertSame(TicketHistoryEvent::Assigned, $history[1]->event);
+        $this->assertSame('Assigned to Omar', $history[1]->description);
+        $this->assertNull($history[1]->old_value);
+        $this->assertSame('Omar', $history[1]->new_value);
+    }
+
+    public function test_us4_as2_reassigns_to_another_agent(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+        $omar = Agent::factory()->create(['name' => 'Omar']);
+        $lina = Agent::factory()->create(['name' => 'Lina']);
+
+        $this->service->assign($ticket, $omar);
+        $reassigned = $this->service->assign($ticket, $lina);
+
+        $this->assertSame($lina->id, $reassigned->agent_id);
+        $this->assertSame($lina->id, $ticket->fresh()->agent_id);
+
+        $last = $ticket->histories()->get()->last();
+        $this->assertSame(TicketHistoryEvent::Assigned, $last->event);
+        $this->assertSame('Reassigned from Omar to Lina', $last->description);
+        $this->assertSame('Omar', $last->old_value);
+        $this->assertSame('Lina', $last->new_value);
+        $this->assertSame(3, $ticket->histories()->count());
+    }
+
+    public function test_us4_as2_reassigns_even_when_the_caller_holds_a_stale_model(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+        $omar = Agent::factory()->create(['name' => 'Omar']);
+        $lina = Agent::factory()->create(['name' => 'Lina']);
+        $stale = Ticket::find($ticket->id);
+
+        $this->service->assign($ticket, $omar);
+        $this->service->assign($stale, $lina);
+
+        $this->assertSame('Reassigned from Omar to Lina', $ticket->histories()->get()->last()->description);
+    }
+
+    public function test_us4_as3_same_agent_is_rejected_without_history(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+        $omar = Agent::factory()->create(['name' => 'Omar Hassan']);
+        $this->service->assign($ticket, $omar);
+
+        try {
+            $this->service->assign($ticket, $omar);
+            $this->fail('Expected TicketRuleException.');
+        } catch (TicketRuleException $e) {
+            $this->assertSame('agent_id', $e->field);
+            $this->assertSame('Ticket is already assigned to Omar Hassan.', $e->getMessage());
+        }
+
+        $this->assertSame(2, $ticket->histories()->count());
+    }
+
+    public function test_us4_as5_closed_ticket_cannot_be_assigned(): void
+    {
+        $ticket = Ticket::factory()->create(['status' => TicketStatus::Closed]);
+        $omar = Agent::factory()->create();
+
+        try {
+            $this->service->assign($ticket, $omar);
+            $this->fail('Expected TicketRuleException.');
+        } catch (TicketRuleException $e) {
+            $this->assertSame('agent_id', $e->field);
+            $this->assertSame('Closed tickets cannot be changed.', $e->getMessage());
+        }
+
+        $this->assertNull($ticket->fresh()->agent_id);
+        $this->assertSame(0, $ticket->histories()->count());
+    }
+
+    public function test_fr023_assignment_rolls_back_when_history_fails(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+        $omar = Agent::factory()->create(['name' => 'Omar']);
+        $lina = Agent::factory()->create(['name' => 'Lina']);
+        $this->service->assign($ticket, $omar);
+
+        TicketHistory::creating(fn () => throw new RuntimeException('History write failed.'));
+
+        try {
+            $this->service->assign($ticket, $lina);
+            $this->fail('Expected RuntimeException.');
+        } catch (RuntimeException $e) {
+            $this->assertSame('History write failed.', $e->getMessage());
+        }
+
+        $this->assertSame($omar->id, $ticket->fresh()->agent_id);
+        $this->assertSame(2, $ticket->histories()->count());
     }
 }

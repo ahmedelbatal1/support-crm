@@ -289,7 +289,7 @@ with `number=TCK-0001`.
 **Goal**: `PATCH /api/tickets/{ticket}/assign` sets the owner and records history.
 **Independent Test**: `php artisan test --filter=AssignTicket` passes.
 
-- [ ] T017 [US4] Add `TicketService::assign(Ticket $ticket, Agent $agent): Ticket` in
+- [X] T017 [US4] Add `TicketService::assign(Ticket $ticket, Agent $agent): Ticket` in
   `backend/app/Services/TicketService.php`. Inside a transaction, after `lockForUpdate()`:
   - If closed, throw `TicketRuleException::closed('agent_id')`.
   - If it is the same agent, throw `alreadyAssigned`.

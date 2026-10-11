@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\TicketHistoryEvent;
 use App\Enums\TicketStatus;
+use App\Exceptions\TicketRuleException;
+use App\Models\Agent;
 use App\Models\Customer;
 use App\Models\Ticket;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -50,6 +52,40 @@ class TicketService
             $this->recordHistory($ticket, TicketHistoryEvent::Created, "Ticket {$ticket->number} created");
 
             return $ticket;
+        });
+    }
+
+    /**
+     * The row is locked and re-read so the checks and the "from" agent in history use the current
+     * state, not whatever the caller loaded earlier.
+     */
+    public function assign(Ticket $ticket, Agent $agent): Ticket
+    {
+        return DB::transaction(function () use ($ticket, $agent) {
+            $locked = Ticket::query()->with('agent')->lockForUpdate()->findOrFail($ticket->id);
+
+            if ($locked->status->isClosed()) {
+                throw TicketRuleException::closed('agent_id');
+            }
+
+            $previous = $locked->agent;
+
+            if ($previous?->is($agent)) {
+                throw TicketRuleException::alreadyAssigned($agent);
+            }
+
+            $locked->agent()->associate($agent);
+            $locked->save();
+
+            $this->recordHistory(
+                $locked,
+                TicketHistoryEvent::Assigned,
+                $previous ? "Reassigned from {$previous->name} to {$agent->name}" : "Assigned to {$agent->name}",
+                $previous?->name,
+                $agent->name,
+            );
+
+            return $locked;
         });
     }
 
