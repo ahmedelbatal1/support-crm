@@ -158,7 +158,7 @@ resources, and the reference-data endpoints.
   - Add `backend/tests/Feature/TicketRuleExceptionTest.php`, asserting the rendered status and
     JSON shape for each constructor.
   - Commit: `feat(backend): add TicketRuleException rendered as 422`
-- [ ] T011 Create the API resources in `backend/app/Http/Resources/`, following the shapes in
+- [X] T011 Create the API resources in `backend/app/Http/Resources/`, following the shapes in
   `contracts/api.md`:
   - `CustomerResource` (id, name, email, phone)
   - `AgentResource` (id, name, email)
