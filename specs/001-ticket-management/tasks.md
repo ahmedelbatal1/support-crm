@@ -206,7 +206,7 @@ and write its history entry.
 **Independent Test**: `php artisan test --filter=CreateTicket` passes. A curl POST returns 201
 with `number=TCK-0001`.
 
-- [ ] T013 [US1] Create `backend/app/Services/TicketService.php`:
+- [X] T013 [US1] Create `backend/app/Services/TicketService.php`:
   - Add a private `recordHistory(Ticket $t, TicketHistoryEvent $e, string $description, ?string $old = null, ?string $new = null)`.
   - Add `createTicket(array $data): Ticket`. Inside `DB::transaction`, it:
     - finds or creates the customer with `Customer::firstOrCreate(['email' => $data['customer_email']], ['name' => ..., 'phone' => ...])`, which never overwrites an existing customer;
