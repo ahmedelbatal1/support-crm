@@ -176,7 +176,7 @@ resources, and the reference-data endpoints.
       the API key is `history`).
     - created_at and updated_at.
   - Commit: `feat(backend): add API resources`
-- [ ] T012 Create the reference-data endpoints and tests:
+- [X] T012 Create the reference-data endpoints and tests:
   - `backend/app/Http/Resources/MetaResource.php`. It builds `statuses`, `priorities`, and
     `categories` from the enums' `options()`, plus `transitions` as a map of value → [values]
     from `TicketStatus::allowedTransitions()`.
