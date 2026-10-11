@@ -219,7 +219,7 @@ with `number=TCK-0001`.
     - customer reuse without changing the stored name or phone (US1-AS2, EC)
     - a single "created" history entry
   - Commit: `feat(backend): add TicketService ticket creation`
-- [ ] T014 [US1] Create `backend/app/Http/Requests/StoreTicketRequest.php`:
+- [X] T014 [US1] Create `backend/app/Http/Requests/StoreTicketRequest.php`:
   - `prepareForValidation` lower-cases and trims `customer_email`.
   - Rules:
     - `customer_name` "required string max:255"
