@@ -129,7 +129,7 @@ resources, and the reference-data endpoints.
   - `backend/database/factories/TicketFactory.php`, which sets `number` in an `afterCreating` hook
     with `Ticket::formatNumber($ticket->id)`.
   - Commit: `feat(db): add tickets table and model`
-- [ ] T009 Create the ticket_notes and ticket_histories migrations in `backend/database/migrations/`:
+- [X] T009 Create the ticket_notes and ticket_histories migrations in `backend/database/migrations/`:
   - **ticket_notes**: `ticket_id` FK `cascadeOnDelete` indexed; `body` text; timestamps.
   - **ticket_histories**: `ticket_id` FK `cascadeOnDelete` indexed; `event` string(20);
     `description` string(255); `old_value` string(255) nullable; `new_value` string(255) nullable;
