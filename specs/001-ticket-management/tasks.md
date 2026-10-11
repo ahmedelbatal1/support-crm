@@ -147,7 +147,7 @@ resources, and the reference-data endpoints.
   Add `backend/tests/Feature/TicketHistoryTest.php`, asserting that updating or deleting a
   history row throws, and that deleting its ticket removes the history rows (FR-022).
   - Commit: `feat(db): add ticket notes and history tables`
-- [ ] T010 Create `backend/app/Exceptions/TicketRuleException.php`, which extends `RuntimeException`.
+- [X] T010 Create `backend/app/Exceptions/TicketRuleException.php`, which extends `RuntimeException`.
   - It has a `field` property and named constructors:
     - `invalidTransition(TicketStatus $from, TicketStatus $to)` → field `status`, message
       "Cannot change status from {From} to {To}."
