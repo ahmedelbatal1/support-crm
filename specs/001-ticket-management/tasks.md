@@ -300,7 +300,7 @@ with `number=TCK-0001`.
   test (FR-023): with a `TicketHistory::creating` listener that throws, `agent_id` is unchanged
   after the exception.
   - Commit: `feat(backend): add ticket assignment to TicketService`
-- [ ] T018 [US4] Create:
+- [X] T018 [US4] Create:
   - `backend/app/Http/Requests/AssignTicketRequest.php` (`agent_id` "required integer `exists:agents,id`")
   - `backend/app/Http/Controllers/Api/TicketAssignmentController.php` (invokable; returns a
     `TicketResource` with relations, 200)
