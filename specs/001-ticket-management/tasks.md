@@ -335,7 +335,7 @@ with `number=TCK-0001`.
   `TicketHistory::creating` listener that throws, then assert the ticket status is unchanged after
   the exception.
   - Commit: `feat(backend): add status transitions to TicketService`
-- [ ] T020 [US5] Create:
+- [X] T020 [US5] Create:
   - `backend/app/Http/Requests/ChangeStatusRequest.php` (`status` "required `Rule::enum(TicketStatus::class)`")
   - `backend/app/Http/Controllers/Api/TicketStatusController.php` (invokable; 200 `TicketResource`
     with relations)
