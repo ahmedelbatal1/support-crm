@@ -413,7 +413,7 @@ frontend pages.
     stays tracked (Constitution VI). Confirm with `git check-ignore frontend/.env` (prints the
     path) and `git check-ignore frontend/.env.example` (prints nothing).
   - Commit: `chore(frontend): replace scaffold with app shell and base styles`
-- [ ] T025 Create the API layer:
+- [X] T025 Create the API layer:
   - `frontend/src/api/http.js`: an Axios instance with `baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api'`
     and the header `Accept: application/json`. A response interceptor rejects with
     `{ status, message, errors }`, where `status` is 0 and the message is "Cannot reach the server."
