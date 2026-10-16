@@ -380,7 +380,7 @@ with `number=TCK-0001`.
 
 ## Phase 4: Seed Data
 
-- [ ] T023 Create the seeders in `backend/database/seeders/`:
+- [X] T023 Create the seeders in `backend/database/seeders/`:
   - `AgentSeeder.php` (5 agents via factory)
   - `CustomerSeeder.php` (10 customers via factory)
   - `TicketSeeder.php` (30 tickets created **through `TicketService::createTicket`** for random
