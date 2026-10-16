@@ -240,4 +240,98 @@ class TicketServiceTest extends TestCase
         $this->assertSame($omar->id, $ticket->fresh()->agent_id);
         $this->assertSame(2, $ticket->histories()->count());
     }
+
+    private function assignedTicket(): Ticket
+    {
+        $ticket = $this->service->createTicket($this->payload());
+        $this->service->assign($ticket, Agent::factory()->create(['name' => 'Omar']));
+
+        return $ticket;
+    }
+
+    private function assertRuleRejected(Ticket $ticket, TicketStatus $to, string $message): void
+    {
+        $before = $ticket->histories()->count();
+
+        try {
+            $this->service->changeStatus($ticket, $to);
+            $this->fail('Expected TicketRuleException.');
+        } catch (TicketRuleException $e) {
+            $this->assertSame('status', $e->field);
+            $this->assertSame($message, $e->getMessage());
+        }
+
+        $this->assertSame($before, $ticket->histories()->count());
+    }
+
+    public function test_us5_as1_moves_an_assigned_open_ticket_to_in_progress(): void
+    {
+        $ticket = $this->assignedTicket();
+
+        $changed = $this->service->changeStatus($ticket, TicketStatus::InProgress);
+
+        $this->assertSame(TicketStatus::InProgress, $changed->status);
+        $this->assertSame(TicketStatus::InProgress, $ticket->fresh()->status);
+
+        $last = $ticket->histories()->get()->last();
+        $this->assertSame(TicketHistoryEvent::StatusChanged, $last->event);
+        $this->assertSame('Status changed from Open to In Progress', $last->description);
+        $this->assertSame('open', $last->old_value);
+        $this->assertSame('in_progress', $last->new_value);
+    }
+
+    public function test_us5_as2_in_progress_requires_an_agent(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+
+        $this->assertRuleRejected($ticket, TicketStatus::InProgress, 'Assign an agent before moving the ticket to In Progress.');
+        $this->assertSame(TicketStatus::Open, $ticket->fresh()->status);
+    }
+
+    public function test_us5_as5_reopen_is_recorded_as_a_reopen(): void
+    {
+        $ticket = $this->assignedTicket();
+        $this->service->changeStatus($ticket, TicketStatus::InProgress);
+        $this->service->changeStatus($ticket, TicketStatus::Resolved);
+
+        $this->service->changeStatus($ticket, TicketStatus::InProgress);
+
+        $last = $ticket->histories()->get()->last();
+        $this->assertSame('Ticket reopened (Resolved → In Progress)', $last->description);
+        $this->assertSame('resolved', $last->old_value);
+        $this->assertSame('in_progress', $last->new_value);
+        $this->assertSame(TicketStatus::InProgress, $ticket->fresh()->status);
+    }
+
+    public function test_us5_as6_invalid_move_is_checked_before_the_agent(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+
+        $this->assertRuleRejected($ticket, TicketStatus::Resolved, 'Cannot change status from Open to Resolved.');
+    }
+
+    public function test_us5_as9_closed_is_checked_before_the_transition(): void
+    {
+        $ticket = Ticket::factory()->create(['status' => TicketStatus::Closed]);
+
+        $this->assertRuleRejected($ticket, TicketStatus::InProgress, 'Closed tickets cannot be changed.');
+        $this->assertSame(TicketStatus::Closed, $ticket->fresh()->status);
+    }
+
+    public function test_us5_as10_status_change_rolls_back_when_history_fails(): void
+    {
+        $ticket = $this->assignedTicket();
+
+        TicketHistory::creating(fn () => throw new RuntimeException('History write failed.'));
+
+        try {
+            $this->service->changeStatus($ticket, TicketStatus::InProgress);
+            $this->fail('Expected RuntimeException.');
+        } catch (RuntimeException $e) {
+            $this->assertSame('History write failed.', $e->getMessage());
+        }
+
+        $this->assertSame(TicketStatus::Open, $ticket->fresh()->status);
+        $this->assertSame(2, $ticket->histories()->count());
+    }
 }

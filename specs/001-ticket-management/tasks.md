@@ -320,7 +320,7 @@ with `number=TCK-0001`.
 **Goal**: `PATCH /api/tickets/{ticket}/status` enforces the fixed flow atomically.
 **Independent Test**: `php artisan test --filter=ChangeTicketStatus` passes.
 
-- [ ] T019 [US5] Add `TicketService::changeStatus(Ticket $ticket, TicketStatus $to): Ticket` in
+- [X] T019 [US5] Add `TicketService::changeStatus(Ticket $ticket, TicketStatus $to): Ticket` in
   `backend/app/Services/TicketService.php`. Inside a transaction, after `lockForUpdate()`, apply
   the guards in this order:
   1. If closed, throw `closed('status')`.

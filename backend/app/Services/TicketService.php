@@ -90,6 +90,45 @@ class TicketService
     }
 
     /**
+     * Guards run in a fixed order so a closed ticket always reports "closed" and an invalid move
+     * is reported before a missing agent.
+     */
+    public function changeStatus(Ticket $ticket, TicketStatus $to): Ticket
+    {
+        return DB::transaction(function () use ($ticket, $to) {
+            $locked = Ticket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $from = $locked->status;
+
+            if ($from->isClosed()) {
+                throw TicketRuleException::closed('status');
+            }
+
+            if (! $from->canTransitionTo($to)) {
+                throw TicketRuleException::invalidTransition($from, $to);
+            }
+
+            if ($to === TicketStatus::InProgress && $locked->agent_id === null) {
+                throw TicketRuleException::agentRequired();
+            }
+
+            $locked->status = $to;
+            $locked->save();
+
+            $this->recordHistory(
+                $locked,
+                TicketHistoryEvent::StatusChanged,
+                $from === TicketStatus::Resolved && $to === TicketStatus::InProgress
+                    ? 'Ticket reopened (Resolved → In Progress)'
+                    : "Status changed from {$from->label()} to {$to->label()}",
+                $from->value,
+                $to->value,
+            );
+
+            return $locked;
+        });
+    }
+
+    /**
      * Filters are combined with AND; agent_id "none" means unassigned (research R8).
      *
      * @param  array{status?: ?string, priority?: ?string, category?: ?string, agent_id?: int|string|null, search?: ?string}  $filters
