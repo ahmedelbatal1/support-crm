@@ -360,7 +360,7 @@ with `number=TCK-0001`.
   rollback test (FR-023): with a `TicketHistory::creating` listener that throws, the ticket has no
   notes after the exception.
   - Commit: `feat(backend): add internal notes to TicketService`
-- [ ] T022 [US6] Create:
+- [X] T022 [US6] Create:
   - `backend/app/Http/Requests/StoreNoteRequest.php` (`body` "required string max:2000"; whitespace-only
     becomes null via middleware and fails `required`)
   - `backend/app/Http/Controllers/Api/TicketNoteController.php@store` (returns **201** `NoteResource`)
