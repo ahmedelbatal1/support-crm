@@ -401,7 +401,7 @@ with `number=TCK-0001`.
 **Purpose**: The app shell, API layer, router, shared components, and store core. This blocks all
 frontend pages.
 
-- [ ] T024 Replace the Vue scaffold:
+- [X] T024 Replace the Vue scaffold:
   - Delete `frontend/src/stores/counter.js` and `frontend/src/__tests__/App.spec.js`.
   - Create `frontend/src/assets/main.css` (plain CSS for layout, table, badges, form, buttons,
     `.field-error`, and `.state` messages).

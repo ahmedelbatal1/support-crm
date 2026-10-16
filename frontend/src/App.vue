@@ -1,11 +1,19 @@
-<script setup></script>
+<script setup>
+import { RouterLink, RouterView } from 'vue-router'
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
-</template>
+  <header class="app-header">
+    <div class="container app-header__inner">
+      <span class="app-header__title">Support CRM</span>
+      <nav class="app-nav">
+        <RouterLink to="/tickets">Tickets</RouterLink>
+        <RouterLink to="/tickets/new">New ticket</RouterLink>
+      </nav>
+    </div>
+  </header>
 
-<style scoped></style>
+  <main class="container">
+    <RouterView />
+  </main>
+</template>
