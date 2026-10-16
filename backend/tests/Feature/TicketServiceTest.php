@@ -334,4 +334,81 @@ class TicketServiceTest extends TestCase
         $this->assertSame(TicketStatus::Open, $ticket->fresh()->status);
         $this->assertSame(2, $ticket->histories()->count());
     }
+
+    public function test_us6_as1_adds_a_note_with_history(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+
+        $note = $this->service->addNote($ticket, 'Called customer, awaiting invoice copy.');
+
+        $this->assertSame($ticket->id, $note->ticket_id);
+        $this->assertSame('Called customer, awaiting invoice copy.', $note->body);
+        $this->assertSame([$note->id], $ticket->notes()->pluck('id')->all());
+
+        $last = $ticket->histories()->get()->last();
+        $this->assertSame(2, $ticket->histories()->count());
+        $this->assertSame(TicketHistoryEvent::NoteAdded, $last->event);
+        $this->assertSame('Note added', $last->description);
+        $this->assertNull($last->old_value);
+        $this->assertNull($last->new_value);
+    }
+
+    public function test_us6_as1_notes_keep_their_order_and_leave_the_ticket_unchanged(): void
+    {
+        $ticket = $this->assignedTicket();
+        $this->service->changeStatus($ticket, TicketStatus::InProgress);
+
+        $this->service->addNote($ticket, 'First');
+        $this->service->addNote($ticket, 'Second');
+
+        $this->assertSame(['First', 'Second'], $ticket->notes()->pluck('body')->all());
+        $this->assertSame(TicketStatus::InProgress, $ticket->fresh()->status);
+        $this->assertNotNull($ticket->fresh()->agent_id);
+    }
+
+    public function test_us6_as3_closed_ticket_cannot_get_notes(): void
+    {
+        $ticket = Ticket::factory()->create(['status' => TicketStatus::Closed]);
+
+        try {
+            $this->service->addNote($ticket, 'Too late.');
+            $this->fail('Expected TicketRuleException.');
+        } catch (TicketRuleException $e) {
+            $this->assertSame('body', $e->field);
+            $this->assertSame('Closed tickets cannot be changed.', $e->getMessage());
+        }
+
+        $this->assertSame(0, $ticket->notes()->count());
+        $this->assertSame(0, $ticket->histories()->count());
+    }
+
+    public function test_us6_as3_closed_check_uses_the_current_status_not_a_stale_model(): void
+    {
+        $ticket = $this->assignedTicket();
+        $stale = Ticket::find($ticket->id);
+        $this->service->changeStatus($ticket, TicketStatus::InProgress);
+        $this->service->changeStatus($ticket, TicketStatus::Resolved);
+        $this->service->changeStatus($ticket, TicketStatus::Closed);
+
+        $this->expectException(TicketRuleException::class);
+
+        $this->service->addNote($stale, 'Written from an old tab.');
+    }
+
+    public function test_fr023_note_rolls_back_when_history_fails(): void
+    {
+        $ticket = $this->service->createTicket($this->payload());
+
+        TicketHistory::creating(fn () => throw new RuntimeException('History write failed.'));
+
+        try {
+            $this->service->addNote($ticket, 'Called customer.');
+            $this->fail('Expected RuntimeException.');
+        } catch (RuntimeException $e) {
+            $this->assertSame('History write failed.', $e->getMessage());
+        }
+
+        $this->assertSame(0, $ticket->notes()->count());
+        $this->assertSame(1, $ticket->histories()->count());
+    }
 }

@@ -8,6 +8,7 @@ use App\Exceptions\TicketRuleException;
 use App\Models\Agent;
 use App\Models\Customer;
 use App\Models\Ticket;
+use App\Models\TicketNote;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -125,6 +126,27 @@ class TicketService
             );
 
             return $locked;
+        });
+    }
+
+    /**
+     * The ticket row is locked even though only a note is written, so a note cannot slip in while
+     * another request is closing the ticket.
+     */
+    public function addNote(Ticket $ticket, string $body): TicketNote
+    {
+        return DB::transaction(function () use ($ticket, $body) {
+            $locked = Ticket::query()->lockForUpdate()->findOrFail($ticket->id);
+
+            if ($locked->status->isClosed()) {
+                throw TicketRuleException::closed('body');
+            }
+
+            $note = $locked->notes()->create(['body' => $body]);
+
+            $this->recordHistory($locked, TicketHistoryEvent::NoteAdded, 'Note added');
+
+            return $note;
         });
     }
 

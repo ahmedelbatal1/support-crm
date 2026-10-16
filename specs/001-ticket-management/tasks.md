@@ -353,7 +353,7 @@ with `number=TCK-0001`.
 **Goal**: `POST /api/tickets/{ticket}/notes` adds a note and a history entry.
 **Independent Test**: `php artisan test --filter=AddTicketNote` passes.
 
-- [ ] T021 [US6] Add `TicketService::addNote(Ticket $ticket, string $body): TicketNote` in
+- [X] T021 [US6] Add `TicketService::addNote(Ticket $ticket, string $body): TicketNote` in
   `backend/app/Services/TicketService.php`. Inside a transaction, after `lockForUpdate()`, throw
   `closed('body')` if the ticket is closed; otherwise create the note and record `note_added` with
   "Note added". Extend `backend/tests/Feature/TicketServiceTest.php` with note cases, including a
