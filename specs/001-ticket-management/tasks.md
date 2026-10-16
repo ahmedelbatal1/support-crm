@@ -426,7 +426,7 @@ frontend pages.
   - Tests in `frontend/src/__tests__/api/http.spec.js` for the error normalizer (422, 404, and
     network errors) and for the return values above.
   - Commit: `feat(frontend): add API layer`
-- [ ] T026 [P] Create the shared components, each rendering user text with `{{ }}` only:
+- [X] T026 [P] Create the shared components, each rendering user text with `{{ }}` only:
   - `frontend/src/components/StateMessage.vue` (props `type`: loading|empty|error|notfound, plus
     `message`; emits `retry` for errors)
   - `frontend/src/components/FieldError.vue` (shows the first message of `errors[field]`)
