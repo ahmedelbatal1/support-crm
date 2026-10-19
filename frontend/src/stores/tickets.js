@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { getMeta, getAgents } from '@/api/meta'
-import { listTickets } from '@/api/tickets'
+import { listTickets, getTicket } from '@/api/tickets'
 
 const EMPTY_FILTERS = { status: '', priority: '', category: '', agent_id: '', search: '' }
 
@@ -100,6 +100,59 @@ export const useTicketsStore = defineStore('tickets', () => {
     }
   }
 
+  // Current ticket: the one shown on the detail page, with notes and history.
+  const currentTicket = ref(null)
+  const ticketLoading = ref(false)
+  const ticketError = ref(null)
+  const ticketNotFound = ref(false)
+
+  let latestTicketRequest = 0
+
+  /**
+   * Loads one ticket. A 404 sets ticketNotFound instead of ticketError. With `silent: true` (used
+   * after a rejected action) it only replaces currentTicket on success: loading and error state
+   * stay as they are, so the page neither flashes nor hides the ticket.
+   */
+  async function fetchTicket(id, { silent = false } = {}) {
+    // A silent request would supersede an in-flight load and leave ticketLoading stuck, so while
+    // a load is running it becomes a normal one; there is no ticket on screen to protect anyway.
+    if (ticketLoading.value) {
+      silent = false
+    }
+
+    const requestId = ++latestTicketRequest
+
+    if (!silent) {
+      ticketLoading.value = true
+      ticketError.value = null
+      ticketNotFound.value = false
+      // Route params are strings, ids are numbers.
+      if (String(currentTicket.value?.id) !== String(id)) {
+        currentTicket.value = null
+      }
+    }
+
+    try {
+      const ticket = await getTicket(id)
+      if (requestId !== latestTicketRequest) return
+
+      currentTicket.value = ticket
+    } catch (error) {
+      if (requestId !== latestTicketRequest || silent) return
+
+      if (error.status === 404) {
+        ticketNotFound.value = true
+        currentTicket.value = null
+      } else {
+        ticketError.value = error.message
+      }
+    } finally {
+      if (requestId === latestTicketRequest && !silent) {
+        ticketLoading.value = false
+      }
+    }
+  }
+
   return {
     meta,
     agents,
@@ -112,5 +165,10 @@ export const useTicketsStore = defineStore('tickets', () => {
     listLoading,
     listError,
     fetchTickets,
+    currentTicket,
+    ticketLoading,
+    ticketError,
+    ticketNotFound,
+    fetchTicket,
   }
 })

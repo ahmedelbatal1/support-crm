@@ -483,7 +483,7 @@ US1–US3 are all P1.
 
 ### User Story 3 — Ticket detail page (P1)
 
-- [ ] T031 [US3] Extend `frontend/src/stores/tickets.js` with `currentTicket`, `ticketLoading`,
+- [X] T031 [US3] Extend `frontend/src/stores/tickets.js` with `currentTicket`, `ticketLoading`,
   `ticketError`, `ticketNotFound`, and `fetchTicket(id, { silent = false } = {})`, which sets
   `ticketNotFound` on a 404. With `silent: true` it replaces `currentTicket` without touching
   `ticketLoading`, so the page doesn't flash a loading state. Tests go in the store spec,
