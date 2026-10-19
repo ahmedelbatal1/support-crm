@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 
 import { useTicketsStore } from '@/stores/tickets'
 import { getMeta, getAgents } from '@/api/meta'
-import { listTickets, getTicket, createTicket } from '@/api/tickets'
+import { listTickets, getTicket, createTicket, assignTicket } from '@/api/tickets'
 
 vi.mock('@/api/meta', () => ({
   getMeta: vi.fn(),
@@ -449,5 +449,42 @@ describe('tickets store: create', () => {
       message: 'Cannot reach the server.',
       errors: {},
     })
+  })
+})
+
+describe('tickets store: assign agent', () => {
+  const ASSIGNED = {
+    id: 12,
+    number: 'TCK-0012',
+    agent: { id: 2, name: 'Omar Hassan', email: 'omar@example.com' },
+    history: [{ id: 41, event: 'assigned', description: 'Assigned to Omar Hassan' }],
+  }
+
+  it('assigns the agent and replaces currentTicket (US4-AS1)', async () => {
+    getTicket.mockResolvedValue({ id: 12, number: 'TCK-0012', agent: null, history: [] })
+    assignTicket.mockResolvedValue(ASSIGNED)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    const result = await store.assignAgent(12, 2)
+
+    expect(assignTicket).toHaveBeenCalledWith(12, 2)
+    expect(result).toEqual(ASSIGNED)
+    expect(store.currentTicket).toEqual(ASSIGNED)
+  })
+
+  it('rethrows a 422 and leaves currentTicket alone (US4-AS3)', async () => {
+    const rejected = {
+      status: 422,
+      message: 'Ticket is already assigned to Omar Hassan.',
+      errors: { agent_id: ['Ticket is already assigned to Omar Hassan.'] },
+    }
+    getTicket.mockResolvedValue(ASSIGNED)
+    assignTicket.mockRejectedValue(rejected)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    await expect(store.assignAgent(12, 2)).rejects.toEqual(rejected)
+    expect(store.currentTicket).toEqual(ASSIGNED)
   })
 })

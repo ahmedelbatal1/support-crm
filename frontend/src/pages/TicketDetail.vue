@@ -4,15 +4,26 @@ import { RouterLink, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
 import { useTicketsStore } from '@/stores/tickets'
+import AssignAgentForm from '@/components/AssignAgentForm.vue'
 import HistoryList from '@/components/HistoryList.vue'
 import StateMessage from '@/components/StateMessage.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { formatDateTime } from '@/utils/format'
 
 const store = useTicketsStore()
-const { currentTicket: ticket, ticketLoading, ticketError, ticketNotFound } = storeToRefs(store)
+const {
+  currentTicket: ticket,
+  ticketLoading,
+  ticketError,
+  ticketNotFound,
+  agents,
+  metaError,
+} = storeToRefs(store)
 
 const route = useRoute()
+
+// The agent list for the assign form; cached after the first page that loads it.
+store.loadReferenceData()
 
 function load() {
   store.fetchTicket(route.params.id)
@@ -63,6 +74,19 @@ watch(
           <dt>Agent</dt>
           <dd>{{ ticket.agent?.name ?? 'Unassigned' }}</dd>
         </dl>
+
+        <!-- Always rendered: on a closed ticket the form hides its own controls but can still
+             show the message of an assignment rejected because the ticket was closed elsewhere. -->
+        <div class="ticket-assign">
+          <StateMessage
+            v-if="metaError && !ticket.is_closed"
+            type="error"
+            :message="`Could not load the agents: ${metaError}`"
+            class="state--inline"
+            @retry="store.loadReferenceData()"
+          />
+          <AssignAgentForm v-else :ticket="ticket" :agents="agents" />
+        </div>
 
         <h3>Description</h3>
         <p class="ticket-description" :class="{ muted: !ticket.description }">

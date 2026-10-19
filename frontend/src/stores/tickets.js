@@ -7,6 +7,7 @@ import {
   getTicket,
   // Aliased: the store exposes an action with the same name.
   createTicket as createTicketRequest,
+  assignTicket,
 } from '@/api/tickets'
 
 const EMPTY_FILTERS = { status: '', priority: '', category: '', agent_id: '', search: '' }
@@ -176,6 +177,21 @@ export const useTicketsStore = defineStore('tickets', () => {
     return ticket
   }
 
+  /**
+   * Assigns or reassigns the agent and replaces currentTicket with the updated ticket (new agent
+   * and history entry). Failures are rethrown for the form; a 422 carries errors.agent_id.
+   */
+  async function assignAgent(id, agentId) {
+    const ticket = await assignTicket(id, agentId)
+
+    // A load started before the assignment would bring back the old agent; ignore it.
+    latestTicketRequest++
+    currentTicket.value = ticket
+    ticketLoading.value = false
+
+    return ticket
+  }
+
   return {
     meta,
     agents,
@@ -194,5 +210,6 @@ export const useTicketsStore = defineStore('tickets', () => {
     ticketNotFound,
     fetchTicket,
     createTicket,
+    assignAgent,
   }
 })

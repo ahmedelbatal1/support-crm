@@ -448,3 +448,26 @@ a.btn {
   align-items: center;
   text-decoration: none;
 }
+
+/* Inline forms on the ticket detail page (assign agent). */
+
+.ticket-assign {
+  margin-bottom: 1rem;
+}
+
+.assign-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.inline-form select {
+  flex: 1 1 12rem;
+  width: auto;
+}

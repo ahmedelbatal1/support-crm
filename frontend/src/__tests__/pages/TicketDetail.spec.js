@@ -6,7 +6,9 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 
 import TicketDetail from '@/pages/TicketDetail.vue'
 import HistoryList from '@/components/HistoryList.vue'
+import AssignAgentForm from '@/components/AssignAgentForm.vue'
 import { getTicket } from '@/api/tickets'
+import { getMeta, getAgents } from '@/api/meta'
 import { formatDateTime } from '@/utils/format'
 
 vi.mock('@/api/tickets', () => ({
@@ -97,6 +99,8 @@ beforeEach(() => {
   setActivePinia(createPinia())
   vi.clearAllMocks()
   getTicket.mockResolvedValue(ticket())
+  getMeta.mockResolvedValue({ statuses: [], priorities: [], categories: [], transitions: {} })
+  getAgents.mockResolvedValue([{ id: 2, name: 'Omar Hassan', email: 'omar@example.com' }])
 })
 
 describe('TicketDetail page', () => {
@@ -245,6 +249,45 @@ describe('TicketDetail page', () => {
 
     expect(getTicket).toHaveBeenLastCalledWith('13')
     expect(wrapper.get('h1').text()).toBe('TCK-0013 Login fails')
+  })
+})
+
+describe('TicketDetail page: assign agent', () => {
+  it('shows the assign form with the agents', async () => {
+    const { wrapper } = await mountAt('/tickets/12')
+
+    const form = wrapper.findComponent(AssignAgentForm)
+    expect(getAgents).toHaveBeenCalledTimes(1)
+    expect(form.exists()).toBe(true)
+    expect(form.props('agents')).toEqual([
+      { id: 2, name: 'Omar Hassan', email: 'omar@example.com' },
+    ])
+    expect(form.props('ticket').id).toBe(12)
+  })
+
+  it('hides the assign form for a closed ticket (US4-AS5)', async () => {
+    getTicket.mockResolvedValue(
+      ticket({ status: { value: 'closed', label: 'Closed' }, is_closed: true }),
+    )
+    const { wrapper } = await mountAt('/tickets/12')
+
+    expect(wrapper.find('.ticket-assign select').exists()).toBe(false)
+    expect(wrapper.find('.ticket-assign button').exists()).toBe(false)
+  })
+
+  it('shows an error with a retry when the agents cannot be loaded', async () => {
+    getAgents.mockRejectedValueOnce({ status: 0, message: 'Cannot reach the server.', errors: {} })
+    const { wrapper } = await mountAt('/tickets/12')
+
+    const error = wrapper.get('.ticket-assign .state--error')
+    expect(error.text()).toContain('Could not load the agents: Cannot reach the server.')
+    expect(wrapper.findComponent(AssignAgentForm).exists()).toBe(false)
+
+    await error.get('button').trigger('click')
+    await flushPromises()
+
+    expect(getAgents).toHaveBeenCalledTimes(2)
+    expect(wrapper.findComponent(AssignAgentForm).exists()).toBe(true)
   })
 })
 

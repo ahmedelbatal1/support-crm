@@ -523,7 +523,7 @@ US1–US3 are all P1.
 
 ### User Story 4 — Assign agent (P2)
 
-- [ ] T035 [US4] Add `assignAgent(id, agentId)` to `frontend/src/stores/tickets.js`; it replaces
+- [X] T035 [US4] Add `assignAgent(id, agentId)` to `frontend/src/stores/tickets.js`; it replaces
   `currentTicket`. Create `frontend/src/components/AssignAgentForm.vue` (an agent select and an
   "Assign"/"Reassign" button, with a `FieldError` for `agent_id`) and render it in
   `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. On a 422, it
