@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import TicketDetail from '@/pages/TicketDetail.vue'
 import HistoryList from '@/components/HistoryList.vue'
 import AssignAgentForm from '@/components/AssignAgentForm.vue'
+import StatusActions from '@/components/StatusActions.vue'
 import { getTicket } from '@/api/tickets'
 import { getMeta, getAgents } from '@/api/meta'
 import { formatDateTime } from '@/utils/format'
@@ -288,6 +289,22 @@ describe('TicketDetail page: assign agent', () => {
 
     expect(getAgents).toHaveBeenCalledTimes(2)
     expect(wrapper.findComponent(AssignAgentForm).exists()).toBe(true)
+  })
+})
+
+describe('TicketDetail page: status actions', () => {
+  it('shows the status actions for the ticket', async () => {
+    getTicket.mockResolvedValue(
+      ticket({
+        allowed_transitions: [{ value: 'resolved', label: 'Resolved', action_label: 'Resolved' }],
+      }),
+    )
+    const { wrapper } = await mountAt('/tickets/12')
+
+    const actions = wrapper.findComponent(StatusActions)
+    expect(actions.exists()).toBe(true)
+    expect(actions.props('ticket').id).toBe(12)
+    expect(actions.findAll('button').map((b) => b.text())).toEqual(['Resolved'])
   })
 })
 

@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 
 import { useTicketsStore } from '@/stores/tickets'
 import { getMeta, getAgents } from '@/api/meta'
-import { listTickets, getTicket, createTicket, assignTicket } from '@/api/tickets'
+import { listTickets, getTicket, createTicket, assignTicket, changeStatus } from '@/api/tickets'
 
 vi.mock('@/api/meta', () => ({
   getMeta: vi.fn(),
@@ -486,5 +486,42 @@ describe('tickets store: assign agent', () => {
 
     await expect(store.assignAgent(12, 2)).rejects.toEqual(rejected)
     expect(store.currentTicket).toEqual(ASSIGNED)
+  })
+})
+
+describe('tickets store: change status', () => {
+  const OPEN = { id: 12, status: { value: 'open', label: 'Open' }, history: [] }
+  const IN_PROGRESS = {
+    id: 12,
+    status: { value: 'in_progress', label: 'In Progress' },
+    history: [{ id: 42, description: 'Status changed from Open to In Progress' }],
+  }
+
+  it('changes the status and replaces currentTicket (US5-AS1)', async () => {
+    getTicket.mockResolvedValue(OPEN)
+    changeStatus.mockResolvedValue(IN_PROGRESS)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    const result = await store.changeStatus(12, 'in_progress')
+
+    expect(changeStatus).toHaveBeenCalledWith(12, 'in_progress')
+    expect(result).toEqual(IN_PROGRESS)
+    expect(store.currentTicket).toEqual(IN_PROGRESS)
+  })
+
+  it('rethrows a 422 and leaves currentTicket alone (US5-AS2)', async () => {
+    const rejected = {
+      status: 422,
+      message: 'Assign an agent before moving the ticket to In Progress.',
+      errors: { status: ['Assign an agent before moving the ticket to In Progress.'] },
+    }
+    getTicket.mockResolvedValue(OPEN)
+    changeStatus.mockRejectedValue(rejected)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    await expect(store.changeStatus(12, 'in_progress')).rejects.toEqual(rejected)
+    expect(store.currentTicket).toEqual(OPEN)
   })
 })

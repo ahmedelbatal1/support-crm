@@ -535,7 +535,7 @@ US1–US3 are all P1.
 
 ### User Story 5 — Status actions (P2)
 
-- [ ] T036 [US5] Add `changeStatus(id, status)` to `frontend/src/stores/tickets.js`; it replaces
+- [X] T036 [US5] Add `changeStatus(id, status)` to `frontend/src/stores/tickets.js`; it replaces
   `currentTicket`. Create `frontend/src/components/StatusActions.vue`, which renders **one button
   per `ticket.allowed_transitions` entry only**, labelled with its `action_label`. It disables the
   buttons while saving. On a 422, it shows the `errors.status` message and calls

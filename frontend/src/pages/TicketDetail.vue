@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import { useTicketsStore } from '@/stores/tickets'
 import AssignAgentForm from '@/components/AssignAgentForm.vue'
 import HistoryList from '@/components/HistoryList.vue'
+import StatusActions from '@/components/StatusActions.vue'
 import StateMessage from '@/components/StateMessage.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { formatDateTime } from '@/utils/format'
@@ -58,6 +59,11 @@ watch(
       </h1>
       <StatusBadge :status="ticket.status" />
     </header>
+
+    <section class="card ticket-status">
+      <h2>Change status</h2>
+      <StatusActions :ticket="ticket" />
+    </section>
 
     <div class="ticket-grid">
       <section class="card">

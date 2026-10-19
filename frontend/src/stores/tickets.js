@@ -8,6 +8,7 @@ import {
   // Aliased: the store exposes an action with the same name.
   createTicket as createTicketRequest,
   assignTicket,
+  changeStatus as changeStatusRequest,
 } from '@/api/tickets'
 
 const EMPTY_FILTERS = { status: '', priority: '', category: '', agent_id: '', search: '' }
@@ -192,6 +193,22 @@ export const useTicketsStore = defineStore('tickets', () => {
     return ticket
   }
 
+  /**
+   * Moves the ticket to another status and replaces currentTicket with the updated ticket (new
+   * status, allowed transitions and history entry). Failures are rethrown for the buttons; a 422
+   * carries errors.status.
+   */
+  async function changeStatus(id, status) {
+    const ticket = await changeStatusRequest(id, status)
+
+    // A load started before the change would bring back the old status; ignore it.
+    latestTicketRequest++
+    currentTicket.value = ticket
+    ticketLoading.value = false
+
+    return ticket
+  }
+
   return {
     meta,
     agents,
@@ -211,5 +228,6 @@ export const useTicketsStore = defineStore('tickets', () => {
     fetchTicket,
     createTicket,
     assignAgent,
+    changeStatus,
   }
 })
