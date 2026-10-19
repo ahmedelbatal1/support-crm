@@ -11,6 +11,11 @@ describe('router', () => {
     expect(router.currentRoute.value.path).toBe('/tickets')
   })
 
+  it('opens the create page for /tickets/new, not a ticket called "new"', () => {
+    expect(router.resolve('/tickets/new').name).toBe('ticket-create')
+    expect(router.resolve('/tickets/12').name).toBe('ticket-detail')
+  })
+
   it('sends unknown URLs to NotFound', async () => {
     await router.push('/no/such/page')
 
