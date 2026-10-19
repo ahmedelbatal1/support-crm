@@ -457,7 +457,7 @@ US1–US3 are all P1.
 
 ### User Story 2 — Ticket list page (P1)
 
-- [ ] T028 [US2] Extend `frontend/src/stores/tickets.js` with the list state (`tickets`,
+- [X] T028 [US2] Extend `frontend/src/stores/tickets.js` with the list state (`tickets`,
   `pagination`, `filters {status, priority, category, agent_id, search}`, `listLoading`,
   `listError`) and `fetchTickets(filters, page)`, with tests in
   `frontend/src/__tests__/stores/tickets.spec.js`.
