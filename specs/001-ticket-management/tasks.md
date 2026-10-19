@@ -469,7 +469,7 @@ US1–US3 are all P1.
   - `frontend/src/components/PaginationBar.vue`: Prev/Next and "Page X of Y (N tickets)". It emits
     `page`.
   - Commit: `feat(frontend): add ticket filters and pagination components`
-- [ ] T030 [US2] Create `frontend/src/pages/TicketList.vue` and register the route `/tickets`:
+- [X] T030 [US2] Create `frontend/src/pages/TicketList.vue` and register the route `/tickets`:
   - A table showing number (link), subject, customer, status badge, priority, category, agent or
     "Unassigned", and created date.
   - Filters and page sync with `route.query` both ways.
