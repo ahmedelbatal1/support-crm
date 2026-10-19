@@ -462,7 +462,7 @@ US1–US3 are all P1.
   `listError`) and `fetchTickets(filters, page)`, with tests in
   `frontend/src/__tests__/stores/tickets.spec.js`.
   - Commit: `feat(frontend): add ticket list state to store`
-- [ ] T029 [P] [US2] Create the list components, with tests in
+- [X] T029 [P] [US2] Create the list components, with tests in
   `frontend/src/__tests__/components/TicketFilters.spec.js`:
   - `frontend/src/components/TicketFilters.vue`: selects from `meta` and `agents`, including an
     "Unassigned" (`none`) option; a debounced search input; and "Clear". It emits `change`.
