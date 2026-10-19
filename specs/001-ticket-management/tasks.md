@@ -489,7 +489,7 @@ US1–US3 are all P1.
   `ticketLoading`, so the page doesn't flash a loading state. Tests go in the store spec,
   including the silent mode.
   - Commit: `feat(frontend): add current ticket state to store`
-- [ ] T032 [US3] Create `frontend/src/components/HistoryList.vue` and
+- [X] T032 [US3] Create `frontend/src/components/HistoryList.vue` and
   `frontend/src/pages/TicketDetail.vue`, and register the route `/tickets/:id`:
   - Shows number, subject, description, status, priority, category, created date, the customer
     block, the agent or "Unassigned", notes (oldest first, or "No notes yet."), and history (oldest

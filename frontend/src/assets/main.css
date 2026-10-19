@@ -314,3 +314,96 @@ textarea {
   opacity: 0.6;
   transition: opacity 0.15s;
 }
+
+/* Ticket detail page. */
+
+.muted {
+  color: var(--color-muted);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.ticket-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ticket-header h1 {
+  margin: 0;
+}
+
+.ticket-number {
+  color: var(--color-muted);
+  font-weight: normal;
+}
+
+.ticket-detail .card {
+  margin-bottom: 1rem;
+}
+
+.ticket-detail h2 {
+  margin-top: 0;
+}
+
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.details dt {
+  color: var(--color-muted);
+}
+
+.details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ticket-description,
+.note-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.note-list,
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.note-list li,
+.history-list li {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.note-list li:first-child,
+.history-list li:first-child {
+  border-top: none;
+}
+
+.note-list time,
+.history-list time {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.note-body {
+  margin: 0.25rem 0 0;
+}
