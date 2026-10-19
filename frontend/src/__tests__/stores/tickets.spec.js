@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 
 import { useTicketsStore } from '@/stores/tickets'
 import { getMeta, getAgents } from '@/api/meta'
-import { listTickets, getTicket } from '@/api/tickets'
+import { listTickets, getTicket, createTicket } from '@/api/tickets'
 
 vi.mock('@/api/meta', () => ({
   getMeta: vi.fn(),
@@ -380,5 +380,74 @@ describe('tickets store: current ticket', () => {
 
     expect(store.currentTicket.id).toBe(13)
     expect(store.ticketLoading).toBe(false)
+  })
+})
+
+describe('tickets store: create', () => {
+  const PAYLOAD = {
+    customer_name: 'Sara Ali',
+    customer_email: 'Sara@Example.com',
+    customer_phone: '',
+    subject: 'Refund not received',
+    description: 'Paid twice in September.',
+    category: 'billing',
+    priority: 'high',
+  }
+  const CREATED = {
+    id: 21,
+    number: 'TCK-0021',
+    subject: 'Refund not received',
+    status: { value: 'open', label: 'Open' },
+    agent: null,
+    notes: [],
+    history: [{ id: 90, event: 'created', description: 'Ticket TCK-0021 created' }],
+  }
+
+  it('creates the ticket and returns it (US1-AS1)', async () => {
+    createTicket.mockResolvedValue(CREATED)
+    const store = useTicketsStore()
+
+    const result = await store.createTicket(PAYLOAD)
+
+    expect(createTicket).toHaveBeenCalledWith(PAYLOAD)
+    expect(result).toEqual(CREATED)
+  })
+
+  it('makes the new ticket current, so the detail page shows it at once', async () => {
+    getTicket.mockRejectedValueOnce({ status: 404, message: 'Ticket not found.', errors: {} })
+    createTicket.mockResolvedValue(CREATED)
+    const store = useTicketsStore()
+    await store.fetchTicket(999999)
+
+    await store.createTicket(PAYLOAD)
+
+    expect(store.currentTicket).toEqual(CREATED)
+    expect(store.ticketNotFound).toBe(false)
+    expect(store.ticketError).toBeNull()
+  })
+
+  it('throws the field errors on a 422 and changes nothing (US1-AS2)', async () => {
+    const invalid = {
+      status: 422,
+      message: 'The customer email field must be a valid email address.',
+      errors: { customer_email: ['The customer email field must be a valid email address.'] },
+    }
+    createTicket.mockRejectedValue(invalid)
+    const store = useTicketsStore()
+
+    await expect(store.createTicket({ ...PAYLOAD, customer_email: 'nope' })).rejects.toEqual(
+      invalid,
+    )
+    expect(store.currentTicket).toBeNull()
+  })
+
+  it('throws other failures with an empty errors object', async () => {
+    createTicket.mockRejectedValue({ status: 0, message: 'Cannot reach the server.', errors: {} })
+    const store = useTicketsStore()
+
+    await expect(store.createTicket(PAYLOAD)).rejects.toMatchObject({
+      message: 'Cannot reach the server.',
+      errors: {},
+    })
   })
 })

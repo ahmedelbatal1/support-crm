@@ -502,7 +502,7 @@ US1–US3 are all P1.
 
 ### User Story 1 — Create ticket page (P1)
 
-- [ ] T033 [US1] Extend `frontend/src/stores/tickets.js` with `createTicket(payload)`. It returns
+- [X] T033 [US1] Extend `frontend/src/stores/tickets.js` with `createTicket(payload)`. It returns
   the created ticket; on a 422 it throws `{ errors }` for the page. Tests go in the store spec.
   - Commit: `feat(frontend): add create ticket action to store`
 - [ ] T034 [US1] Create `frontend/src/pages/TicketCreate.vue` and register the route `/tickets/new`

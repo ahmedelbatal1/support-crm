@@ -2,7 +2,12 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { getMeta, getAgents } from '@/api/meta'
-import { listTickets, getTicket } from '@/api/tickets'
+import {
+  listTickets,
+  getTicket,
+  // Aliased: the store exposes an action with the same name.
+  createTicket as createTicketRequest,
+} from '@/api/tickets'
 
 const EMPTY_FILTERS = { status: '', priority: '', category: '', agent_id: '', search: '' }
 
@@ -153,6 +158,24 @@ export const useTicketsStore = defineStore('tickets', () => {
     }
   }
 
+  /**
+   * Creates a ticket and returns it. The new ticket becomes currentTicket so the detail page can
+   * show it at once. Failures are rethrown as { status, message, errors } for the page; a 422
+   * carries the field errors.
+   */
+  async function createTicket(payload) {
+    const ticket = await createTicketRequest(payload)
+
+    // Any load still in flight is for an older ticket; ignore its result.
+    latestTicketRequest++
+    currentTicket.value = ticket
+    ticketLoading.value = false
+    ticketError.value = null
+    ticketNotFound.value = false
+
+    return ticket
+  }
+
   return {
     meta,
     agents,
@@ -170,5 +193,6 @@ export const useTicketsStore = defineStore('tickets', () => {
     ticketError,
     ticketNotFound,
     fetchTicket,
+    createTicket,
   }
 })
