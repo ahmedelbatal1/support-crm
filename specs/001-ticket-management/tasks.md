@@ -437,7 +437,7 @@ frontend pages.
 
   Tests in `frontend/src/__tests__/components/shared.spec.js`.
   - Commit: `feat(frontend): add shared state, error and badge components`
-- [ ] T027 Create `frontend/src/stores/tickets.js`, the single Pinia setup store:
+- [X] T027 Create `frontend/src/stores/tickets.js`, the single Pinia setup store:
   - State: `meta`, `agents`, `metaLoading`, and `metaError`.
   - Actions: `loadReferenceData()` (meta + agents; cached once loaded).
 
