@@ -565,7 +565,7 @@ US1–US3 are all P1.
 
 ## Phase 7: Final Checks & README
 
-- [ ] T038 Do the scenario coverage audit. For every `US<n>-AS<m>` in spec.md and each edge case,
+- [X] T038 Do the scenario coverage audit. For every `US<n>-AS<m>` in spec.md and each edge case,
   confirm a backend test references it (grep `backend/tests/`), and add any missing tests to the
   matching file in `backend/tests/Feature/`.
   - Commit: `test: cover remaining acceptance scenarios`

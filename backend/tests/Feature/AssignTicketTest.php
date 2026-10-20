@@ -120,7 +120,7 @@ class AssignTicketTest extends TestCase
         $this->assertSame(0, $ticket->histories()->count());
     }
 
-    public function test_missing_ticket_returns_404(): void
+    public function test_ec_missing_ticket_returns_404(): void
     {
         $omar = Agent::factory()->create();
 
