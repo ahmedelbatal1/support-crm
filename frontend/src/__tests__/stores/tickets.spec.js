@@ -1,9 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { flushPromises } from '@vue/test-utils'
 
 import { useTicketsStore } from '@/stores/tickets'
 import { getMeta, getAgents } from '@/api/meta'
-import { listTickets, getTicket, createTicket, assignTicket, changeStatus } from '@/api/tickets'
+import {
+  listTickets,
+  getTicket,
+  createTicket,
+  assignTicket,
+  changeStatus,
+  addNote,
+} from '@/api/tickets'
 
 vi.mock('@/api/meta', () => ({
   getMeta: vi.fn(),
@@ -523,5 +531,64 @@ describe('tickets store: change status', () => {
 
     await expect(store.changeStatus(12, 'in_progress')).rejects.toEqual(rejected)
     expect(store.currentTicket).toEqual(OPEN)
+  })
+})
+
+describe('tickets store: add note', () => {
+  const NOTE = { id: 7, body: 'Called customer.', created_at: '2026-10-07T06:15:00.000000Z' }
+  const BEFORE = {
+    id: 12,
+    notes: [],
+    history: [{ id: 40, description: 'Ticket TCK-0012 created' }],
+  }
+  const AFTER = {
+    id: 12,
+    notes: [NOTE],
+    history: [...BEFORE.history, { id: 41, description: 'Note added' }],
+  }
+
+  it('adds the note, then re-fetches the ticket silently (US6-AS1)', async () => {
+    getTicket.mockResolvedValueOnce(BEFORE).mockResolvedValueOnce(AFTER)
+    addNote.mockResolvedValue(NOTE)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    const pending = store.addNote(12, 'Called customer.')
+    await flushPromises()
+    expect(store.ticketLoading).toBe(false)
+    const result = await pending
+
+    expect(addNote).toHaveBeenCalledWith(12, 'Called customer.')
+    expect(getTicket).toHaveBeenLastCalledWith(12)
+    expect(result).toEqual(NOTE)
+    expect(store.currentTicket).toEqual(AFTER)
+  })
+
+  it('shows the note at once, before the re-fetch returns', async () => {
+    getTicket.mockResolvedValueOnce(BEFORE).mockReturnValueOnce(new Promise(() => {}))
+    addNote.mockResolvedValue(NOTE)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    store.addNote(12, 'Called customer.')
+    await flushPromises()
+
+    expect(store.currentTicket.notes).toEqual([NOTE])
+  })
+
+  it('rethrows a 422 and does not re-fetch (US6-AS2)', async () => {
+    const rejected = {
+      status: 422,
+      message: 'The body field is required.',
+      errors: { body: ['The body field is required.'] },
+    }
+    getTicket.mockResolvedValue(BEFORE)
+    addNote.mockRejectedValue(rejected)
+    const store = useTicketsStore()
+    await store.fetchTicket(12)
+
+    await expect(store.addNote(12, '   ')).rejects.toEqual(rejected)
+    expect(getTicket).toHaveBeenCalledTimes(1)
+    expect(store.currentTicket).toEqual(BEFORE)
   })
 })
