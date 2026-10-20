@@ -9,6 +9,7 @@ import {
   createTicket as createTicketRequest,
   assignTicket,
   changeStatus as changeStatusRequest,
+  addNote as addNoteRequest,
 } from '@/api/tickets'
 
 const EMPTY_FILTERS = { status: '', priority: '', category: '', agent_id: '', search: '' }
@@ -209,6 +210,25 @@ export const useTicketsStore = defineStore('tickets', () => {
     return ticket
   }
 
+  /**
+   * Adds an internal note and returns it. The note is appended to currentTicket at once, then the
+   * ticket is re-fetched silently so its history shows the "Note added" entry. Failures are
+   * rethrown for the form; a 422 carries errors.body.
+   */
+  async function addNote(id, body) {
+    const note = await addNoteRequest(id, body)
+
+    if (String(currentTicket.value?.id) === String(id)) {
+      currentTicket.value = {
+        ...currentTicket.value,
+        notes: [...currentTicket.value.notes, note],
+      }
+    }
+    await fetchTicket(id, { silent: true })
+
+    return note
+  }
+
   return {
     meta,
     agents,
@@ -229,5 +249,6 @@ export const useTicketsStore = defineStore('tickets', () => {
     createTicket,
     assignAgent,
     changeStatus,
+    addNote,
   }
 })

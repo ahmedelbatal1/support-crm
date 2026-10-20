@@ -549,7 +549,7 @@ US1–US3 are all P1.
 
 ### User Story 6 — Notes form (P3)
 
-- [ ] T037 [US6] Add `addNote(id, body)` to `frontend/src/stores/tickets.js`; it re-fetches the
+- [X] T037 [US6] Add `addNote(id, body)` to `frontend/src/stores/tickets.js`; it re-fetches the
   ticket so the notes and history update. Create `frontend/src/components/NoteForm.vue` (a
   textarea, a 2,000-character counter, and a `FieldError` for `body`; it clears on success) and
   render it in `frontend/src/pages/TicketDetail.vue`, hidden when `ticket.is_closed` is true. On a

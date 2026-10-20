@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import { useTicketsStore } from '@/stores/tickets'
 import AssignAgentForm from '@/components/AssignAgentForm.vue'
 import HistoryList from '@/components/HistoryList.vue'
+import NoteForm from '@/components/NoteForm.vue'
 import StatusActions from '@/components/StatusActions.vue'
 import StateMessage from '@/components/StateMessage.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -122,6 +123,8 @@ watch(
         </li>
       </ul>
       <p v-else class="muted">No notes yet.</p>
+
+      <NoteForm :ticket="ticket" />
     </section>
 
     <section class="card">
