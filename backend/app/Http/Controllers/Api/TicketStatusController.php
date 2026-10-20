@@ -11,9 +11,7 @@ use App\Services\TicketService;
 
 class TicketStatusController extends Controller
 {
-    public function __construct(private readonly TicketService $tickets)
-    {
-    }
+    public function __construct(private readonly TicketService $tickets) {}
 
     public function __invoke(ChangeStatusRequest $request, Ticket $ticket): TicketResource
     {

@@ -54,9 +54,7 @@ class TicketSeeder extends Seeder
         [TicketStatus::InProgress, TicketStatus::Resolved, TicketStatus::InProgress],
     ];
 
-    public function __construct(private readonly TicketService $tickets)
-    {
-    }
+    public function __construct(private readonly TicketService $tickets) {}
 
     public function run(): void
     {

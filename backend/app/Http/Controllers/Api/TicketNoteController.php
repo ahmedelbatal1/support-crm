@@ -11,9 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 class TicketNoteController extends Controller
 {
-    public function __construct(private readonly TicketService $tickets)
-    {
-    }
+    public function __construct(private readonly TicketService $tickets) {}
 
     public function store(StoreNoteRequest $request, Ticket $ticket): JsonResponse
     {
