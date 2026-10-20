@@ -13,9 +13,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TicketController extends Controller
 {
-    public function __construct(private readonly TicketService $tickets)
-    {
-    }
+    public function __construct(private readonly TicketService $tickets) {}
 
     public function index(ListTicketsRequest $request): AnonymousResourceCollection
     {

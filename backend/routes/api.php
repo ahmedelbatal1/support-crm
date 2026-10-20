@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\TicketAssignmentController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\TicketNoteController;
 use App\Http\Controllers\Api\TicketStatusController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/meta', MetaController::class);

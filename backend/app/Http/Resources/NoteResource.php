@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\TicketNote;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\TicketNote
+ * @mixin TicketNote
  */
 class NoteResource extends JsonResource
 {

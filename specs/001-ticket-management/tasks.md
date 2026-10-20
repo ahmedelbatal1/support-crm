@@ -577,7 +577,7 @@ US1–US3 are all P1.
   - no hard-coded status, priority, or category strings outside the enums and tests
   - `git ls-files` shows no `.env`
   - Commit: `chore: security and constitution compliance sweep`
-- [ ] T040 Run the linters and formatters and fix the results: `backend/vendor/bin/pint` and
+- [X] T040 Run the linters and formatters and fix the results: `backend/vendor/bin/pint` and
   `npm run lint` in `frontend/`. Both test suites must pass afterwards.
   - Commit: `style: apply pint and eslint fixes`
 - [ ] T041 Run the [quickstart.md](./quickstart.md) setup from scratch on WAMP, then do manual

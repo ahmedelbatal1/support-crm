@@ -11,9 +11,7 @@ use App\Services\TicketService;
 
 class TicketAssignmentController extends Controller
 {
-    public function __construct(private readonly TicketService $tickets)
-    {
-    }
+    public function __construct(private readonly TicketService $tickets) {}
 
     public function __invoke(AssignTicketRequest $request, Ticket $ticket): TicketResource
     {
