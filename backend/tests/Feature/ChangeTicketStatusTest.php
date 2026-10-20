@@ -205,6 +205,33 @@ class ChangeTicketStatusTest extends TestCase
             ->assertJsonCount($historyCount, 'data.history');
     }
 
+    public function test_ec_stale_screen_shows_the_rule_and_the_latest_state_can_be_reloaded(): void
+    {
+        $ticket = $this->ticketIn(TicketStatus::Resolved);
+
+        // The first tab loads the ticket and still offers Reopen.
+        $this->getJson("/api/tickets/{$ticket->id}")
+            ->assertJsonPath('data.allowed_transitions.1.action_label', 'Reopen');
+
+        // Another tab closes it.
+        $this->changeStatus($ticket, 'closed')->assertOk();
+
+        // The first tab's Reopen is rejected with the rule's message...
+        $this->changeStatus($ticket, 'in_progress')
+            ->assertUnprocessable()
+            ->assertExactJson([
+                'message' => 'Closed tickets cannot be changed.',
+                'errors' => ['status' => ['Closed tickets cannot be changed.']],
+            ]);
+
+        // ...and reloading shows the latest state.
+        $this->getJson("/api/tickets/{$ticket->id}")
+            ->assertOk()
+            ->assertJsonPath('data.status.value', 'closed')
+            ->assertJsonPath('data.is_closed', true)
+            ->assertJsonPath('data.allowed_transitions', []);
+    }
+
     public static function invalidBodies(): array
     {
         return [
@@ -228,7 +255,7 @@ class ChangeTicketStatusTest extends TestCase
         $this->assertSame(2, $ticket->histories()->count());
     }
 
-    public function test_missing_ticket_returns_404(): void
+    public function test_ec_missing_ticket_returns_404(): void
     {
         $this->patchJson('/api/tickets/999999/status', ['status' => 'in_progress'])
             ->assertNotFound()

@@ -53,7 +53,7 @@ class AddTicketNoteTest extends TestCase
             ->assertJsonPath('data.history.1.description', 'Note added');
     }
 
-    public function test_us6_as1_html_is_stored_and_returned_as_text(): void
+    public function test_ec_html_in_a_note_is_stored_and_returned_as_text(): void
     {
         $ticket = $this->createTicket();
 
@@ -120,7 +120,7 @@ class AddTicketNoteTest extends TestCase
         $this->assertSame(0, $ticket->histories()->count());
     }
 
-    public function test_missing_ticket_returns_404(): void
+    public function test_ec_missing_ticket_returns_404(): void
     {
         $this->postJson('/api/tickets/999999/notes', ['body' => 'Hello'])
             ->assertNotFound()

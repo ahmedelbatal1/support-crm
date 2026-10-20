@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Ticket;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -55,6 +57,63 @@ class CreateTicketTest extends TestCase
             ->assertJsonPath('data.customer.email', 'sara@example.com');
 
         $this->assertSame(1, Customer::count());
+    }
+
+    public function test_ec_existing_customer_keeps_name_and_phone(): void
+    {
+        $customer = Customer::factory()->create([
+            'name' => 'Sara Ali',
+            'email' => 'sara@example.com',
+            'phone' => '+966511111111',
+        ]);
+
+        $this->postJson('/api/tickets', $this->payload([
+            'customer_name' => 'Sara A.',
+            'customer_phone' => '+966522222222',
+        ]))
+            ->assertCreated()
+            ->assertJsonPath('data.customer.id', $customer->id)
+            ->assertJsonPath('data.customer.name', 'Sara Ali')
+            ->assertJsonPath('data.customer.phone', '+966511111111');
+
+        $this->assertSame(1, Customer::count());
+        $this->assertSame('Sara Ali', $customer->fresh()->name);
+        $this->assertSame('+966511111111', $customer->fresh()->phone);
+    }
+
+    /**
+     * Numbers come from the auto-increment id, so two requests at the same moment get different
+     * ids; the unique index is the backstop if two rows ever ended up with the same number.
+     * PHPUnit runs requests one at a time, so this checks both parts rather than a real race.
+     */
+    public function test_ec_two_tickets_never_share_a_number(): void
+    {
+        $first = $this->postJson('/api/tickets', $this->payload())->assertCreated()->json('data');
+        $second = $this->postJson('/api/tickets', $this->payload())->assertCreated()->json('data');
+
+        $this->assertSame(['TCK-0001', 'TCK-0002'], [$first['number'], $second['number']]);
+        $this->assertSame(Ticket::formatNumber($second['id']), $second['number']);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        DB::table('tickets')->insert([
+            'number' => 'TCK-0001',
+            'customer_id' => Customer::first()->id,
+            'subject' => 'Duplicate number',
+            'category' => 'general',
+            'priority' => 'low',
+        ]);
+    }
+
+    public function test_ec_number_is_not_reused_after_the_latest_ticket_is_deleted(): void
+    {
+        foreach (range(1, 3) as $i) {
+            $this->postJson('/api/tickets', $this->payload())->assertCreated();
+        }
+        Ticket::where('number', 'TCK-0003')->firstOrFail()->delete();
+
+        $this->postJson('/api/tickets', $this->payload())
+            ->assertCreated()
+            ->assertJsonPath('data.number', 'TCK-0004');
     }
 
     public function test_us1_as2_new_customer_email_is_stored_lower_cased(): void

@@ -182,6 +182,26 @@ class ListTicketsTest extends TestCase
             ->assertJsonValidationErrors([$field]);
     }
 
+    public function test_ec_unknown_status_is_rejected_with_a_clear_message(): void
+    {
+        $this->getJson('/api/tickets?status=pending')
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'The selected status is invalid.')
+            ->assertJsonPath('errors.status', ['The selected status is invalid.']);
+    }
+
+    public function test_ec_quotes_in_search_are_literal(): void
+    {
+        $double = Ticket::factory()->create(['subject' => 'Customer said "urgent" twice']);
+        $single = Ticket::factory()->create(['subject' => "Can't log in"]);
+        Ticket::factory()->create(['subject' => 'Customer said urgent twice']);
+        Ticket::factory()->create(['subject' => 'Cant log in']);
+
+        $this->assertSame([$double->number], $this->numbers('?search='.urlencode('"urgent"')));
+        $this->assertSame([$single->number], $this->numbers('?search='.urlencode("can't")));
+        $this->assertSame([], $this->numbers('?search='.urlencode("' OR 1=1 --")));
+    }
+
     public function test_ec_percent_and_underscore_in_search_are_literal(): void
     {
         $percent = Ticket::factory()->create(['subject' => 'Charged 100% twice']);
