@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TicketStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +21,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('category', 20)->index();
             $table->string('priority', 20)->index();
-            $table->string('status', 20)->default('open')->index();
+            $table->string('status', 20)->default(TicketStatus::Open->value)->index();
             $table->timestamps();
         });
     }

@@ -43,10 +43,16 @@ class TicketSeeder extends Seeder
     ];
 
     /**
-     * The final status for each ticket, cycled so every status (and a reopen) appears.
-     * "reopened" ends In Progress after a Resolved → In Progress move.
+     * The status moves for each ticket, cycled so every status (and a reopen) appears.
+     * An empty path leaves the ticket Open; the last path reopens with Resolved → In Progress.
      */
-    private const TARGETS = ['open', 'in_progress', 'resolved', 'closed', 'reopened'];
+    private const PATHS = [
+        [],
+        [TicketStatus::InProgress],
+        [TicketStatus::InProgress, TicketStatus::Resolved],
+        [TicketStatus::InProgress, TicketStatus::Resolved, TicketStatus::Closed],
+        [TicketStatus::InProgress, TicketStatus::Resolved, TicketStatus::InProgress],
+    ];
 
     public function __construct(private readonly TicketService $tickets)
     {
@@ -58,14 +64,15 @@ class TicketSeeder extends Seeder
         $agents = Agent::all();
 
         for ($i = 0; $i < 30; $i++) {
-            $this->seedTicket($customers->random(), $agents, self::TARGETS[$i % count(self::TARGETS)]);
+            $this->seedTicket($customers->random(), $agents, self::PATHS[$i % count(self::PATHS)]);
         }
     }
 
     /**
      * @param  Collection<int, Agent>  $agents
+     * @param  list<TicketStatus>  $path
      */
-    private function seedTicket(Customer $customer, Collection $agents, string $target): void
+    private function seedTicket(Customer $customer, Collection $agents, array $path): void
     {
         $ticket = $this->tickets->createTicket([
             'customer_name' => $customer->name,
@@ -78,19 +85,11 @@ class TicketSeeder extends Seeder
         ]);
 
         // About half of the open tickets stay unassigned; every other ticket needs an agent.
-        if ($target !== 'open' || fake()->boolean()) {
+        if ($path !== [] || fake()->boolean()) {
             $this->assignRandomAgent($ticket, $agents);
         }
 
         $this->maybeAddNote($ticket);
-
-        $path = match ($target) {
-            'open' => [],
-            'in_progress' => [TicketStatus::InProgress],
-            'resolved' => [TicketStatus::InProgress, TicketStatus::Resolved],
-            'closed' => [TicketStatus::InProgress, TicketStatus::Resolved, TicketStatus::Closed],
-            'reopened' => [TicketStatus::InProgress, TicketStatus::Resolved, TicketStatus::InProgress],
-        };
 
         foreach ($path as $status) {
             // Notes go in before each move, so none are attempted after the ticket is closed.

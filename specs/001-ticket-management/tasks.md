@@ -569,7 +569,7 @@ US1–US3 are all P1.
   confirm a backend test references it (grep `backend/tests/`), and add any missing tests to the
   matching file in `backend/tests/Feature/`.
   - Commit: `test: cover remaining acceptance scenarios`
-- [ ] T039 Do the security and constitution sweep, fixing any findings:
+- [X] T039 Do the security and constitution sweep, fixing any findings:
   - no `v-html` in `frontend/src/`
   - no `DB::raw`, `whereRaw`, or `selectRaw` using request input in `backend/app/`
   - every model in `backend/app/Models/` declares `$fillable`
