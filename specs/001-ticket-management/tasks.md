@@ -593,7 +593,7 @@ US1–US3 are all P1.
   T044, …) with its own `fix(...)` commit message. Log the results, including the timings, in
   `docs/ai-usage.md`.
   - Commit: `docs: record quickstart validation results`
-- [ ] T042 Write `README.md` at the repository root covering:
+- [X] T042 Write `README.md` at the repository root covering:
   - the purpose and scope (Ticket Management only) and an out-of-scope list
   - the tech stack
   - setup (summary + link to `specs/001-ticket-management/quickstart.md`)
