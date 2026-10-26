@@ -580,7 +580,7 @@ US1–US3 are all P1.
 - [X] T040 Run the linters and formatters and fix the results: `backend/vendor/bin/pint` and
   `npm run lint` in `frontend/`. Both test suites must pass afterwards.
   - Commit: `style: apply pint and eslint fixes`
-- [ ] T041 Run the [quickstart.md](./quickstart.md) setup from scratch on WAMP, then do manual
+- [X] T041 Run the [quickstart.md](./quickstart.md) setup from scratch on WAMP, then do manual
   scenarios 1–13. Then check SC-007:
   - point `.env` at a scratch database `support_crm_perf` and run `php artisan migrate:fresh --seed`;
   - in `php artisan tinker`, run `App\Models\Ticket::factory()->count(10000)->create()`;
